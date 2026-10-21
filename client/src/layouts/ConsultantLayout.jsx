@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, LogOut, Bell, Search, LayoutDashboard, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import InfinityLogo from '../components/InfinityLogo';
 
 const ConsultantLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -77,9 +78,9 @@ const ConsultantLayout = () => {
           sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
         }`}
       >
-        <div className="h-20 flex items-center justify-center border-b border-gray-100 relative">
-          <Link to="/" className="flex items-center justify-center">
-            <img src="/logo.png" alt="StaffHub Logo" className="h-12 w-auto" />
+        <div className="h-20 flex items-center px-6 border-b border-gray-100 relative">
+          <Link to="/" className="flex items-center">
+            <InfinityLogo size="sm" />
           </Link>
           <button className="lg:hidden absolute right-4 text-gray-400 hover:text-gray-800" onClick={() => setSidebarOpen(false)}>
             <X size={24} />
@@ -88,12 +89,12 @@ const ConsultantLayout = () => {
 
         {/* User Profile Block */}
         <div className="p-6 border-b border-gray-100 flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-full bg-[#0e3d79] flex items-center justify-center text-white font-bold text-lg shadow-sm">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-tr from-indigo-600 to-indigo-700 flex items-center justify-center text-white font-bold text-lg shadow-sm">
             {initials}
           </div>
           <div className="overflow-hidden">
             <h3 className="font-bold text-gray-900 text-sm truncate">{consultant.name}</h3>
-            <p className="text-xs text-teal-600 font-medium">{consultant.role}</p>
+            <p className="text-xs text-indigo-600 font-bold">{consultant.role}</p>
           </div>
         </div>
 
@@ -108,11 +109,11 @@ const ConsultantLayout = () => {
                   to={item.path}
                   className={`flex items-center space-x-4 px-8 py-3 transition-all ${
                     isActive 
-                    ? 'bg-[#0e3d79]/10 text-[#0e3d79] border-l-4 border-[#0e3d79] font-bold' 
+                    ? 'bg-indigo-50 text-indigo-700 border-l-4 border-indigo-600 font-bold' 
                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 border-l-4 border-transparent font-medium'
                   }`}
                 >
-                  <span className={`${isActive ? 'text-[#0e3d79]' : 'text-gray-400'}`}>{item.icon}</span>
+                  <span className={`${isActive ? 'text-indigo-600' : 'text-gray-400'}`}>{item.icon}</span>
                   <span className="text-sm">{item.name}</span>
                 </Link>
               );
@@ -121,7 +122,7 @@ const ConsultantLayout = () => {
         </div>
 
         <div className="p-4 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500 font-medium">
-          <span>Consultant Portal</span>
+          <span className="font-semibold text-slate-600">Infinity Roles • Consultant</span>
           <button onClick={handleLogout} className="text-red-500 font-bold hover:text-red-600 transition-colors flex items-center">
             Logout
           </button>

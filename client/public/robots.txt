@@ -18,4 +18,4 @@ Disallow: /employee/dashboard
 Disallow: /api/
 
 # Specify the location of the Sitemap
-Sitemap: https://staffhub.com/sitemap.xml
+Sitemap: https://infinityroles.com/sitemap.xml

@@ -13,6 +13,7 @@ import Profile from '../pages/admin/Profile';
 import Settings from '../pages/admin/Settings';
 import SupervisorManagement from '../pages/admin/SupervisorManagement';
 import ConsultantManagement from '../pages/admin/ConsultantManagement';
+import UserManagement from '../pages/admin/UserManagement';
 import EmployeeManagement from '../pages/supervisor/EmployeeManagement';
 
 // Supervisor Routes
@@ -77,9 +78,11 @@ const AppRouter = () => {
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="profile" element={<Profile />} />
-          <Route path="settings" element={<Settings />} />
           <Route path="supervisors" element={<SupervisorManagement />} />
           <Route path="consultants" element={<ConsultantManagement />} />
+          <Route path="users" element={<UserManagement />} />
+          <Route path="companies" element={<Dashboard />} />
+          <Route path="settings" element={<Settings />} />
         </Route>
 
         {/* Supervisor Routes */}

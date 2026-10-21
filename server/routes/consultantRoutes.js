@@ -72,18 +72,18 @@ router.post('/forgotpassword', async (req, res) => {
     const htmlTemplate = `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb; border-radius: 10px;">
         <div style="text-align: center; margin-bottom: 20px;">
-          <h1 style="color: #0e3d79; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 1px;">Staff<span style="color: #0d9488;">Hub</span></h1>
+          <h1 style="color: #4f46e5; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 1px;">The Infinity <span style="color: #06b6d4;">Roles</span></h1>
         </div>
         <div style="background-color: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); border: 1px solid #f3f4f6;">
           <h2 style="color: #1f2937; margin-top: 0; text-align: center;">Reset Your Password</h2>
           <p style="color: #4b5563; line-height: 1.6;">Hello,</p>
-          <p style="color: #4b5563; line-height: 1.6;">We received a request to reset the password for your StaffHub Consultant account. Click the button below to set a new password:</p>
+          <p style="color: #4b5563; line-height: 1.6;">We received a request to reset the password for your The Infinity Roles Consultant account. Click the button below to set a new password:</p>
           <div style="text-align: center; margin: 35px 0;">
-            <a href="${resetUrl}" style="background-color: #0e3d79; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; box-shadow: 0 4px 6px rgba(14, 61, 121, 0.2);">Reset Password</a>
+            <a href="${resetUrl}" style="background-color: #4f46e5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);">Reset Password</a>
           </div>
           <p style="color: #4b5563; line-height: 1.6; font-size: 14px;">If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;" />
-          <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">StaffHub &copy; 2026. All rights reserved.</p>
+          <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">The Infinity Roles &copy; 2026. All rights reserved.</p>
         </div>
       </div>
     `;
@@ -91,7 +91,7 @@ router.post('/forgotpassword', async (req, res) => {
     try {
       await sendEmail({
         email: consultant.email,
-        subject: 'Reset Your StaffHub Password',
+        subject: 'Reset Your The Infinity Roles Password',
         message,
         html: htmlTemplate,
       });

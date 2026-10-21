@@ -107,10 +107,18 @@ const SupervisorManagement = () => {
 
   return (
     <div className="p-6 sm:p-8 max-w-7xl mx-auto w-full">
-      <div className="bg-white/60 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+      {/* Header Banner */}
+      <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-sm border border-slate-200/80 p-6 sm:p-7 flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-[#0e3d79] tracking-tight pb-1">Supervisor Management</h1>
-          <p className="text-gray-500 mt-1 font-medium text-sm">Manage supervisors and their access</p>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-700 text-xs font-bold mb-2">
+            <span>Shift & Team Orchestration</span>
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight font-display">
+            Supervisor Management
+          </h1>
+          <p className="text-slate-500 mt-1 font-medium text-xs sm:text-sm">
+            Deploy supervisors, manage shift rosters, and assign team privileges.
+          </p>
         </div>
         <button
           onClick={() => {
@@ -118,7 +126,7 @@ const SupervisorManagement = () => {
             setFormData({ name: '', email: '', phoneNumber: '', address: '' });
             setIsModalOpen(true);
           }}
-          className="flex items-center space-x-2 bg-gradient-to-r from-[#0e3d79] to-[#1553a1] hover:from-[#1553a1] hover:to-[#0e3d79] text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-[#0e3d79]/30 transition-all hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
+          className="flex items-center space-x-2 bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 hover:from-indigo-700 hover:to-purple-800 text-white px-5 py-2.5 rounded-xl font-bold text-xs sm:text-sm shadow-lg shadow-indigo-500/25 transition-all hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0"
         >
           <Plus size={18} />
           <span>Add Supervisor</span>
@@ -126,16 +134,17 @@ const SupervisorManagement = () => {
       </div>
 
       {/* Table Section */}
-      <div className="bg-white/60 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white overflow-hidden">
+      <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-sm border border-slate-200/80 overflow-hidden">
         {loading ? (
-          <div className="flex items-center justify-center h-64 text-gray-400">
-            <Loader2 className="w-8 h-8 animate-spin" />
+          <div className="flex flex-col items-center justify-center h-64 text-slate-400 gap-3">
+            <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+            <span className="text-xs font-semibold">Loading supervisors...</span>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-100 text-gray-500 text-xs uppercase tracking-wider font-bold">
+                <tr className="bg-slate-50/80 border-b border-slate-200/70 text-slate-500 text-[11px] uppercase tracking-wider font-extrabold">
                   <th className="px-6 py-4">ID</th>
                   <th className="px-6 py-4">Name</th>
                   <th className="px-6 py-4">Email</th>
@@ -144,42 +153,58 @@ const SupervisorManagement = () => {
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-slate-100 text-xs font-medium text-slate-700">
                 {supervisors.length === 0 ? (
                   <tr>
-                    <td colSpan="4" className="px-6 py-8 text-center text-gray-500 font-medium">
-                      No supervisors found.
+                    <td colSpan="6" className="px-6 py-12 text-center text-slate-400">
+                      <div className="flex flex-col items-center justify-center gap-2">
+                        <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center text-indigo-500 mb-1">
+                          <Plus size={24} />
+                        </div>
+                        <p className="font-bold text-slate-700 text-sm">No supervisors deployed yet</p>
+                        <p className="text-xs text-slate-400">Click "Add Supervisor" to provision credentials and dispatch onboarding email.</p>
+                      </div>
                     </td>
                   </tr>
                 ) : (
                   supervisors.map((supervisor) => (
-                    <tr key={supervisor._id} className="hover:bg-gray-50/50 transition-colors">
+                    <tr key={supervisor._id} className="hover:bg-indigo-50/40 transition-colors">
                       <td className="px-6 py-4">
-                        <div className="font-medium text-gray-600">{supervisor.supervisorId || '-'}</div>
+                        <span className="font-mono font-bold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100 text-[11px]">
+                          {supervisor.supervisorId || '-'}
+                        </span>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="font-bold text-gray-900">{supervisor.name}</div>
+                      <td className="px-6 py-4 font-bold text-slate-900">
+                        {supervisor.name}
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center text-gray-500 text-sm font-medium">
-                          <Mail size={14} className="mr-2" />
-                          {supervisor.email}
+                      <td className="px-6 py-4 text-slate-500">
+                        <div className="flex items-center gap-2">
+                          <Mail size={13} className="text-slate-400" />
+                          <span>{supervisor.email}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="text-gray-500 text-sm font-medium">{supervisor.phoneNumber || '-'}</div>
+                      <td className="px-6 py-4 text-slate-600">
+                        {supervisor.phoneNumber || '-'}
                       </td>
                       <td className="px-6 py-4">
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-teal-50 text-teal-700">
+                        <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-100">
                           {supervisor.role}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <div className="flex items-center justify-end space-x-3">
-                          <button onClick={() => handleEdit(supervisor)} className="text-gray-400 hover:text-teal-600 transition-colors">
+                        <div className="flex items-center justify-end space-x-2">
+                          <button 
+                            onClick={() => handleEdit(supervisor)} 
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                            title="Edit Supervisor"
+                          >
                             <Edit size={16} />
                           </button>
-                          <button onClick={() => handleDelete(supervisor._id)} className="text-gray-400 hover:text-red-500 transition-colors">
+                          <button 
+                            onClick={() => handleDelete(supervisor._id)} 
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                            title="Delete Supervisor"
+                          >
                             <Trash2 size={16} />
                           </button>
                         </div>
@@ -193,7 +218,7 @@ const SupervisorManagement = () => {
         )}
       </div>
 
-      {/* Create Slide-over Panel */}
+      {/* Create / Edit Slide-over Panel with Glassmorphism */}
       <AnimatePresence>
         {isModalOpen && (
           <div className="fixed inset-0 z-50 flex justify-end">
@@ -201,87 +226,121 @@ const SupervisorManagement = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-gray-900/40 backdrop-blur-md"
+              className="absolute inset-0 bg-slate-950/40 backdrop-blur-md"
               onClick={() => setIsModalOpen(false)}
             />
             <motion.div
               initial={{ x: '100%' }}
               animate={{ x: 0 }}
               exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="bg-white/70 backdrop-blur-2xl border-l border-white/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.1)] w-full max-w-lg h-full relative z-10 overflow-y-auto flex flex-col"
+              transition={{ type: 'spring', damping: 28, stiffness: 240 }}
+              className="bg-white/85 backdrop-blur-3xl border-l border-white/70 shadow-[0_20px_50px_rgba(79,70,229,0.15)] w-full max-w-lg h-full relative z-10 overflow-y-auto flex flex-col"
             >
-              <div className="p-6 border-b border-gray-200/50 flex justify-between items-start">
+              {/* Top Decorative Ambient Glow in Card */}
+              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-transparent rounded-full blur-3xl pointer-events-none -z-10" />
+
+              <div className="p-6 border-b border-slate-200/60 flex justify-between items-start bg-gradient-to-r from-white/90 via-indigo-50/30 to-purple-50/20 backdrop-blur-md">
                 <div>
-                  <h2 className="text-xl font-bold text-gray-900">{editingId ? 'Edit Supervisor' : 'Add New Supervisor'}</h2>
-                  <p className="text-sm text-gray-500 mt-1 font-medium">{editingId ? 'Update supervisor details.' : 'They will receive an email with login credentials.'}</p>
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-extrabold uppercase tracking-wider border border-indigo-100 mb-2">
+                    <span>Supervisor Provisioning</span>
+                  </div>
+                  <h2 className="text-xl font-extrabold text-slate-900 font-display">
+                    {editingId ? 'Edit Supervisor' : 'Add New Supervisor'}
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-1 font-medium">
+                    {editingId ? 'Update supervisor credentials and contact details.' : 'They will receive an automated email with system login credentials.'}
+                  </p>
                 </div>
                 <button 
                   onClick={() => setIsModalOpen(false)}
-                  className="p-2 text-gray-400 hover:text-gray-700 hover:bg-gray-200/50 rounded-full transition-colors"
+                  className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200/50 rounded-full transition-colors"
                 >
-                  <X size={20} />
+                  <X size={18} />
                 </button>
               </div>
-              <form onSubmit={handleSubmit} className="p-6">
-                {error && (
-                  <div className="mb-4 p-3 bg-red-50 text-red-700 rounded-xl text-sm font-medium">
-                    {error}
-                  </div>
-                )}
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1.5">Name</label>
-                    <input
-                      type="text"
-                      required
-                      value={formData.name}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-white/50 border border-gray-200/50 rounded-xl focus:bg-white/80 focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500/50 outline-none transition-all font-medium"
-                      placeholder="John Doe"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1.5">Email</label>
-                    <input
-                      type="email"
-                      required
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-white/50 border border-gray-200/50 rounded-xl focus:bg-white/80 focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500/50 outline-none transition-all font-medium"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1.5">Phone Number</label>
-                    <input
-                      type="tel"
-                      value={formData.phoneNumber}
-                      onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-white/50 border border-gray-200/50 rounded-xl focus:bg-white/80 focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500/50 outline-none transition-all font-medium"
-                      placeholder="+1 (555) 000-0000"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-bold text-gray-700 mb-1.5">Address</label>
-                    <textarea
-                      rows={3}
-                      value={formData.address}
-                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                      className="w-full px-4 py-2.5 bg-white/50 border border-gray-200/50 rounded-xl focus:bg-white/80 focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500/50 outline-none transition-all font-medium resize-none"
-                      placeholder="Enter full address"
-                    />
+
+              <form onSubmit={handleSubmit} className="p-6 flex-1 flex flex-col justify-between">
+                <div>
+                  {error && (
+                    <div className="mb-5 p-3.5 bg-rose-50/80 border border-rose-200 text-rose-700 rounded-2xl text-xs font-bold backdrop-blur-sm">
+                      {error}
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Full Name
+                      </label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.name}
+                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        className="w-full px-4 py-2.5 bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-xl focus:bg-white focus:ring-4 focus:ring-indigo-500/15 focus:border-indigo-500 outline-none transition-all text-sm font-medium shadow-sm placeholder:text-slate-400"
+                        placeholder="John Doe"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Email Address
+                      </label>
+                      <input
+                        type="email"
+                        required
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        className="w-full px-4 py-2.5 bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-xl focus:bg-white focus:ring-4 focus:ring-indigo-500/15 focus:border-indigo-500 outline-none transition-all text-sm font-medium shadow-sm placeholder:text-slate-400"
+                        placeholder="supervisor@domain.com"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Phone Number
+                      </label>
+                      <input
+                        type="tel"
+                        value={formData.phoneNumber}
+                        onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                        className="w-full px-4 py-2.5 bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-xl focus:bg-white focus:ring-4 focus:ring-indigo-500/15 focus:border-indigo-500 outline-none transition-all text-sm font-medium shadow-sm placeholder:text-slate-400"
+                        placeholder="+1 (555) 000-0000"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                        Office or Work Location Address
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={formData.address}
+                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                        className="w-full px-4 py-2.5 bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-xl focus:bg-white focus:ring-4 focus:ring-indigo-500/15 focus:border-indigo-500 outline-none transition-all text-sm font-medium resize-none shadow-sm placeholder:text-slate-400"
+                        placeholder="Enter location or facility address..."
+                      />
+                    </div>
                   </div>
                 </div>
-                <div className="mt-8 pt-6 border-t border-gray-200/50 flex items-center justify-end space-x-3 mb-6">
+
+                <div className="mt-8 pt-6 border-t border-slate-200/60 flex items-center justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setIsModalOpen(false)}
+                    className="px-4 py-2.5 rounded-xl border border-slate-200/80 text-slate-600 hover:bg-slate-100 font-bold text-xs transition-colors shadow-sm bg-white/80"
+                  >
+                    Cancel
+                  </button>
                   <button
                     type="submit"
                     disabled={creating}
-                    className="flex items-center justify-center bg-[#0e3d79] hover:bg-[#1553a1] text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-md shadow-[#0e3d79]/20 transition-all hover:shadow-lg disabled:opacity-70 disabled:cursor-not-allowed"
+                    className="flex items-center justify-center bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 hover:from-indigo-700 hover:to-purple-800 text-white px-6 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-indigo-500/25 transition-all hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed"
                   >
                     {creating ? (
                       <>
                         <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Creating...
+                        Saving...
                       </>
                     ) : (
                       editingId ? 'Update Supervisor' : 'Create Supervisor'

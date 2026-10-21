@@ -3,6 +3,7 @@ const router = express.Router();
 const Admin = require('../models/Admin');
 const Supervisor = require('../models/Supervisor');
 const Consultant = require('../models/Consultant');
+const Employee = require('../models/Employee');
 const generateToken = require('../utils/generateToken');
 const { protectAdmin } = require('../middleware/authMiddleware');
 const crypto = require('crypto');
@@ -83,14 +84,14 @@ router.post('/supervisors', protectAdmin, async (req, res) => {
       const htmlTemplate = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaea; border-radius: 8px; overflow: hidden;">
         <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-bottom: 1px solid #eaeaea;">
-          <h1 style="color: #0e3d79; margin: 0; font-size: 24px;">StaffHub</h1>
+          <h1 style="color: #4f46e5; margin: 0; font-size: 24px;">The Infinity Roles</h1>
         </div>
         <div style="padding: 40px 20px; text-align: center; background-color: #ffffff;">
           <h2 style="color: #111827; margin-top: 0; font-size: 20px;">Welcome, Supervisor!</h2>
           <p style="color: #6b7280; font-size: 16px; margin-bottom: 30px;">
-            You have been added as a Supervisor to the StaffHub portal. Here are your login credentials.
+            You have been added as a Supervisor to The Infinity Roles portal. Here are your login credentials.
           </p>
-          <div style="border: 2px dashed #0e3d79; border-radius: 8px; padding: 20px; margin: 0 auto; max-width: 400px;">
+          <div style="border: 2px dashed #4f46e5; border-radius: 8px; padding: 20px; margin: 0 auto; max-width: 400px;">
             <p style="color: #6b7280; font-size: 12px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; margin-top: 0;">YOUR LOGIN CREDENTIALS</p>
             <p style="font-size: 18px; margin: 10px 0; color: #111827;"><strong>Email:</strong> ${email}</p>
             <p style="font-size: 18px; margin: 10px 0; color: #111827;"><strong>Password:</strong> ${password}</p>
@@ -98,11 +99,11 @@ router.post('/supervisors', protectAdmin, async (req, res) => {
           <p style="color: #6b7280; font-size: 14px; margin-top: 30px; margin-bottom: 20px;">
             Please log in to the application to proceed. We recommend changing your password immediately after logging in.
           </p>
-          <a href="http://localhost:5173/supervisor/login" style="display: inline-block; padding: 12px 24px; background-color: #0e3d79; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Log In to Your Account</a>
+          <a href="http://localhost:5173/supervisor/login" style="display: inline-block; padding: 12px 24px; background-color: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Log In to Your Account</a>
         </div>
         <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #eaeaea;">
           <p style="color: #9ca3af; font-size: 12px; margin: 0;">
-            StaffHub © 2026 | <a href="mailto:support@staffhub.com" style="color: #0e3d79; text-decoration: none;">support@staffhub.com</a>
+            The Infinity Roles © 2026 | <a href="mailto:support@infinityroles.com" style="color: #4f46e5; text-decoration: none;">support@infinityroles.com</a>
           </p>
         </div>
       </div>
@@ -110,7 +111,7 @@ router.post('/supervisors', protectAdmin, async (req, res) => {
 
       await sendEmail({
         email: supervisor.email,
-        subject: 'Welcome to StaffHub - Your Supervisor Account',
+        subject: 'Welcome to The Infinity Roles - Your Supervisor Account',
         html: htmlTemplate,
       });
 
@@ -176,14 +177,14 @@ router.post('/consultants', protectAdmin, async (req, res) => {
       const htmlTemplate = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #eaeaea; border-radius: 8px; overflow: hidden;">
         <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-bottom: 1px solid #eaeaea;">
-          <h1 style="color: #0e3d79; margin: 0; font-size: 24px;">StaffHub</h1>
+          <h1 style="color: #4f46e5; margin: 0; font-size: 24px;">The Infinity Roles</h1>
         </div>
         <div style="padding: 40px 20px; text-align: center; background-color: #ffffff;">
           <h2 style="color: #111827; margin-top: 0; font-size: 20px;">Welcome, Consultant!</h2>
           <p style="color: #6b7280; font-size: 16px; margin-bottom: 30px;">
-            You have been added as a Consultant to the StaffHub portal. Here are your login credentials.
+            You have been added as a Consultant to The Infinity Roles portal. Here are your login credentials.
           </p>
-          <div style="border: 2px dashed #0e3d79; border-radius: 8px; padding: 20px; margin: 0 auto; max-width: 400px;">
+          <div style="border: 2px dashed #4f46e5; border-radius: 8px; padding: 20px; margin: 0 auto; max-width: 400px;">
             <p style="color: #6b7280; font-size: 12px; font-weight: bold; letter-spacing: 1px; text-transform: uppercase; margin-top: 0;">YOUR LOGIN CREDENTIALS</p>
             <p style="font-size: 18px; margin: 10px 0; color: #111827;"><strong>Email:</strong> ${email}</p>
             <p style="font-size: 18px; margin: 10px 0; color: #111827;"><strong>Password:</strong> ${password}</p>
@@ -191,11 +192,11 @@ router.post('/consultants', protectAdmin, async (req, res) => {
           <p style="color: #6b7280; font-size: 14px; margin-top: 30px; margin-bottom: 20px;">
             Please log in to the application to proceed. We recommend changing your password immediately after logging in.
           </p>
-          <a href="http://localhost:5173/consultant/login" style="display: inline-block; padding: 12px 24px; background-color: #0e3d79; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Log In to Your Account</a>
+          <a href="http://localhost:5173/consultant/login" style="display: inline-block; padding: 12px 24px; background-color: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px;">Log In to Your Account</a>
         </div>
         <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #eaeaea;">
           <p style="color: #9ca3af; font-size: 12px; margin: 0;">
-            StaffHub © 2026 | <a href="mailto:support@staffhub.com" style="color: #0e3d79; text-decoration: none;">support@staffhub.com</a>
+            The Infinity Roles © 2026 | <a href="mailto:support@infinityroles.com" style="color: #4f46e5; text-decoration: none;">support@infinityroles.com</a>
           </p>
         </div>
       </div>
@@ -203,7 +204,7 @@ router.post('/consultants', protectAdmin, async (req, res) => {
 
       await sendEmail({
         email: consultant.email,
-        subject: 'Welcome to StaffHub - Your Consultant Account',
+        subject: 'Welcome to The Infinity Roles - Your Consultant Account',
         html: htmlTemplate,
       });
 
@@ -309,18 +310,18 @@ router.post('/forgotpassword', async (req, res) => {
     const htmlTemplate = `
       <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb; border-radius: 10px;">
         <div style="text-align: center; margin-bottom: 20px;">
-          <h1 style="color: #0e3d79; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 1px;">Staff<span style="color: #0d9488;">Hub</span></h1>
+          <h1 style="color: #4f46e5; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 1px;">The Infinity <span style="color: #06b6d4;">Roles</span></h1>
         </div>
         <div style="background-color: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); border: 1px solid #f3f4f6;">
           <h2 style="color: #1f2937; margin-top: 0; text-align: center;">Reset Your Password</h2>
           <p style="color: #4b5563; line-height: 1.6;">Hello,</p>
-          <p style="color: #4b5563; line-height: 1.6;">We received a request to reset the password for your StaffHub Admin account. Click the button below to set a new password:</p>
+          <p style="color: #4b5563; line-height: 1.6;">We received a request to reset the password for your The Infinity Roles Admin account. Click the button below to set a new password:</p>
           <div style="text-align: center; margin: 35px 0;">
-            <a href="${resetUrl}" style="background-color: #0e3d79; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; box-shadow: 0 4px 6px rgba(14, 61, 121, 0.2);">Reset Password</a>
+            <a href="${resetUrl}" style="background-color: #4f46e5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);">Reset Password</a>
           </div>
           <p style="color: #4b5563; line-height: 1.6; font-size: 14px;">If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
           <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;" />
-          <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">StaffHub &copy; 2026. All rights reserved.</p>
+          <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">The Infinity Roles &copy; 2026. All rights reserved.</p>
         </div>
       </div>
     `;
@@ -328,7 +329,7 @@ router.post('/forgotpassword', async (req, res) => {
     try {
       await sendEmail({
         email: admin.email,
-        subject: 'Reset Your StaffHub Password',
+        subject: 'Reset Your The Infinity Roles Password',
         message,
         html: htmlTemplate,
       });
@@ -382,7 +383,73 @@ router.put('/resetpassword/:resettoken', async (req, res) => {
   }
 });
 
-module.exports = router;
+// @route   GET /api/admin/stats
+// @desc    Get system stats for dashboard
+// @access  Private (Admin)
+router.get('/stats', protectAdmin, async (req, res) => {
+  try {
+    const supervisorCount = await Supervisor.countDocuments().catch(() => 0);
+    const consultantCount = await Consultant.countDocuments().catch(() => 0);
+    const employeeCount = await Employee.countDocuments().catch(() => 0);
+
+    res.json({
+      supervisors: supervisorCount,
+      consultants: consultantCount,
+      employees: employeeCount,
+      totalUsers: supervisorCount + consultantCount + employeeCount,
+    });
+  } catch (error) {
+    console.error('Error fetching admin stats:', error);
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+});
+
+// @route   GET /api/admin/users
+// @desc    Get all users across roles (Supervisors, Consultants, Employees)
+// @access  Private (Admin)
+router.get('/users', protectAdmin, async (req, res) => {
+  try {
+    const supervisors = await Supervisor.find({}).select('-password');
+    const consultants = await Consultant.find({}).select('-password');
+    const employees = await Employee.find({}).select('-password');
+
+    const formattedSupervisors = supervisors.map(s => ({
+      _id: s._id,
+      name: s.name,
+      email: s.email,
+      phone: s.phoneNumber || '-',
+      role: 'Supervisor',
+      identifier: s.supervisorId || '-',
+      createdAt: s.createdAt
+    }));
+
+    const formattedConsultants = consultants.map(c => ({
+      _id: c._id,
+      name: c.name,
+      email: c.email,
+      phone: c.phoneNumber || '-',
+      role: 'Consultant',
+      identifier: c.consultantId || '-',
+      createdAt: c.createdAt
+    }));
+
+    const formattedEmployees = employees.map(e => ({
+      _id: e._id,
+      name: e.name,
+      email: e.email,
+      phone: e.phoneNumber || '-',
+      role: 'Employee',
+      identifier: e.employeeId || '-',
+      createdAt: e.createdAt
+    }));
+
+    const allUsers = [...formattedSupervisors, ...formattedConsultants, ...formattedEmployees];
+    res.json(allUsers);
+  } catch (error) {
+    console.error('Error in /api/admin/users:', error);
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+});
 
 // @route   PUT /api/admin/consultants/:id
 // @desc    Update a consultant
@@ -432,3 +499,5 @@ router.delete('/consultants/:id', protectAdmin, async (req, res) => {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }
 });
+
+module.exports = router;

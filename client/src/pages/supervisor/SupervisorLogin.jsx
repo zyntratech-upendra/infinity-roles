@@ -3,12 +3,13 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, Loader2, LogIn, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import useSEO from '../../hooks/useSEO';
+import InfinityLogo from '../../components/InfinityLogo';
 
 const SupervisorLogin = () => {
   useSEO({
-    title: 'Supervisor Login',
-    description: 'StaffHub Supervisor Portal Login. Access your dashboard to oversee employee shifts, approve timesheets, manage daily attendance, and track team performance.',
-    keywords: 'supervisor login, staffhub supervisor, team management, track attendance, approve timesheets'
+    title: 'Supervisor Portal Login',
+    description: 'Infinity Roles Supervisor Portal Login. Access your dashboard to oversee employee shifts, approve timesheets, manage daily attendance, and track team performance.',
+    keywords: 'supervisor login, infinity roles supervisor, team management, track attendance, approve timesheets'
   });
 
   const [email, setEmail] = useState('');
@@ -43,11 +44,11 @@ const SupervisorLogin = () => {
   };
 
   return (
-    <div className="flex-grow bg-gray-50 flex items-center justify-center px-4 pt-24 pb-12 relative overflow-hidden">
+    <div className="flex-grow bg-slate-50 flex items-center justify-center px-4 pt-24 pb-12 relative overflow-hidden">
       {/* Background Decor */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-[#0e3d79]/5 blur-3xl"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-teal-500/5 blur-3xl"></div>
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-indigo-500/10 blur-3xl"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-cyan-500/10 blur-3xl"></div>
       </div>
 
       <motion.div
@@ -56,17 +57,20 @@ const SupervisorLogin = () => {
         transition={{ duration: 0.5 }}
         className="w-full max-w-md relative z-10"
       >
-        <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-white p-8">
+        <div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-card border border-slate-200/80 p-8 sm:p-10">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-extrabold text-[#0e3d79] tracking-tight mb-2">Supervisor Portal</h1>
-            <p className="text-gray-500 font-medium text-sm">Welcome back! Please login to your account.</p>
+            <Link to="/" className="inline-block mb-3">
+              <InfinityLogo size="lg" />
+            </Link>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-display tracking-tight mb-2">Supervisor Portal</h1>
+            <p className="text-slate-500 font-medium text-xs sm:text-sm">Welcome back! Please login to your supervisor account.</p>
           </div>
 
           {error && (
             <motion.div 
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="mb-6 p-4 bg-red-50/80 backdrop-blur-sm border border-red-100 text-red-600 rounded-2xl text-sm font-semibold flex items-center"
+              className="mb-6 p-4 bg-red-50/80 backdrop-blur-sm border border-red-100 text-red-600 rounded-2xl text-xs sm:text-sm font-semibold flex items-center"
             >
               <span className="mr-2">⚠️</span>
               {error}
@@ -75,17 +79,17 @@ const SupervisorLogin = () => {
 
           <form onSubmit={handleLogin} className="space-y-6">
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Email Address</label>
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Email Address</label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
+                  <Mail className="h-5 w-5 text-slate-400" />
                 </div>
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-11 pr-4 py-3 bg-white/50 border border-gray-200/60 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#0e3d79]/20 focus:border-[#0e3d79] transition-all outline-none"
+                  className="block w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all outline-none"
                   placeholder="supervisor@example.com"
                 />
               </div>
@@ -93,25 +97,25 @@ const SupervisorLogin = () => {
 
             <div>
               <div className="flex items-center justify-between mb-2">
-                <label className="block text-sm font-bold text-gray-700">Password</label>
-                <Link to="/supervisor/forgot-password" className="text-xs font-bold text-[#0e3d79] hover:text-[#1553a1] transition-colors">Forgot password?</Link>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">Password</label>
+                <Link to="/supervisor/forgot-password" className="text-xs font-bold text-indigo-600 hover:text-indigo-800 transition-colors">Forgot password?</Link>
               </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Lock className="h-5 w-5 text-gray-400" />
+                  <Lock className="h-5 w-5 text-slate-400" />
                 </div>
                 <input
                   type={showPassword ? 'text' : 'password'}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-11 pr-12 py-3 bg-white/50 border border-gray-200/60 rounded-xl text-sm font-medium focus:ring-2 focus:ring-[#0e3d79]/20 focus:border-[#0e3d79] transition-all outline-none"
+                  className="block w-full pl-11 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 transition-all outline-none"
                   placeholder="••••••••"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-gray-400 hover:text-gray-600 focus:outline-none"
+                  className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none"
                 >
                   {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
@@ -121,21 +125,21 @@ const SupervisorLogin = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center items-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-[#0e3d79]/20 text-sm font-bold text-white bg-gradient-to-r from-[#0e3d79] to-[#1553a1] hover:from-[#1553a1] hover:to-[#0e3d79] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#0e3d79] transition-all hover:shadow-xl active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+              className="w-full flex justify-center items-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-indigo-500/20 text-sm font-bold text-white bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-600 transition-all hover:shadow-xl active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {loading ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
                   <LogIn className="w-5 h-5 mr-2" />
-                  Sign In
+                  Sign In to Supervisor Portal
                 </>
               )}
             </button>
           </form>
         </div>
         <div className="text-center mt-6">
-           <p className="text-xs text-gray-500 font-medium">StaffHub © 2026. All rights reserved.</p>
+           <p className="text-xs text-slate-500 font-medium">Infinity Roles © 2026. All rights reserved.</p>
         </div>
       </motion.div>
     </div>

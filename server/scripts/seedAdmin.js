@@ -1,4 +1,5 @@
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
 const mongoose = require('mongoose');
 const Admin = require('../models/Admin');
 const connectDB = require('../config/db');
@@ -7,8 +8,8 @@ const seedAdmin = async () => {
   try {
     await connectDB();
 
-    const adminEmail = 'admin@staffhub.com';
-    const adminPassword = 'adminpassword123'; // In a real scenario, use a secure password
+    const adminEmail = process.env.ADMIN_EMAIL || 'admin@infinityroles.com';
+    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123'; // In a real scenario, use a secure password
 
     const existingAdmin = await Admin.findOne({ email: adminEmail });
 
@@ -27,7 +28,7 @@ const seedAdmin = async () => {
     console.log('✅ Main Admin seeded successfully!');
     console.log(`Email: ${adminEmail}`);
     console.log(`Password: ${adminPassword}`);
-    
+
     process.exit(0);
   } catch (error) {
     console.error('❌ Error seeding admin:', error.message);

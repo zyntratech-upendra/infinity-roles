@@ -8,7 +8,7 @@ const useSEO = ({ title, description, keywords }) => {
     const ogDescription = document.querySelector('meta[property="og:description"]');
 
     if (title) {
-      const fullTitle = `${title} | StaffHub`;
+      const fullTitle = `${title} | Infinity Roles`;
       document.title = fullTitle;
       if (ogTitle) ogTitle.setAttribute('content', fullTitle);
       

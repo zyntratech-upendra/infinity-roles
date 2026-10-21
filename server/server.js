@@ -18,7 +18,7 @@ app.use(express.json());
 
 // Basic Route for testing
 app.get('/api', (req, res) => {
-  res.json({ message: 'Welcome to StaffHub API' });
+  res.json({ message: 'Welcome to Infinity Roles API' });
 });
 
 // Admin API Routes

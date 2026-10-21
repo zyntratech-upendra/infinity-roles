@@ -2,48 +2,48 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <!-- Public Pages -->
   <url>
-    <loc>https://staffhub.com/</loc>
-    <lastmod>2026-08-13</lastmod>
+    <loc>https://infinityroles.com/</loc>
+    <lastmod>2026-10-20</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://staffhub.com/about</loc>
-    <lastmod>2026-08-13</lastmod>
+    <loc>https://infinityroles.com/about</loc>
+    <lastmod>2026-10-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://staffhub.com/features</loc>
-    <lastmod>2026-08-13</lastmod>
+    <loc>https://infinityroles.com/features</loc>
+    <lastmod>2026-10-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://staffhub.com/contact</loc>
-    <lastmod>2026-08-13</lastmod>
+    <loc>https://infinityroles.com/contact</loc>
+    <lastmod>2026-10-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <!-- Login Portals -->
   <url>
-    <loc>https://staffhub.com/admin/login</loc>
+    <loc>https://infinityroles.com/admin/login</loc>
     <changefreq>yearly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://staffhub.com/supervisor/login</loc>
+    <loc>https://infinityroles.com/supervisor/login</loc>
     <changefreq>yearly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://staffhub.com/consultant/login</loc>
+    <loc>https://infinityroles.com/consultant/login</loc>
     <changefreq>yearly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://staffhub.com/employee/login</loc>
+    <loc>https://infinityroles.com/employee/login</loc>
     <changefreq>yearly</changefreq>
     <priority>0.6</priority>
   </url>

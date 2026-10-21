@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Logo Generator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@800&family=Plus+Jakarta+Sans:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; padding: 20px; background: transparent; }
+    #logo-box {
+      width: 480px;
+      height: 110px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: transparent;
+    }
+  </style>
+</head>
+<body>
+  <div id="logo-box">
+    <img src="/logo.svg" style="height: 90px; width: auto;" id="svg-img" />
+  </div>
+  <canvas id="c" width="480" height="110" style="display:none;"></canvas>
+  <script>
+    window.logoReady = false;
+    window.onload = () => {
+      setTimeout(() => {
+        window.logoReady = true;
+      }, 500);
+    };
+  </script>
+</body>
+</html>

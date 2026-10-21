@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Lock, Loader2, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import InfinityLogo from '../../components/InfinityLogo';
 
 const ResetPassword = ({ role }) => {
   const [password, setPassword] = useState('');
@@ -89,6 +90,9 @@ const ResetPassword = ({ role }) => {
           ) : (
             <>
               <div className="text-center mb-8">
+                <Link to="/" className="inline-block mb-3">
+                  <InfinityLogo size="lg" />
+                </Link>
                 <h1 className={`text-3xl font-extrabold ${theme.color} tracking-tight mb-2`}>Reset Password</h1>
                 <p className="text-gray-500 font-medium text-sm">Create a new password for your {formattedRole} portal.</p>
               </div>
@@ -155,7 +159,7 @@ const ResetPassword = ({ role }) => {
           )}
         </div>
         <div className="text-center mt-6">
-           <p className="text-xs text-gray-500 font-medium">StaffHub © 2026. All rights reserved.</p>
+           <p className="text-xs text-slate-500 font-medium">The Infinity Roles © 2026. All rights reserved.</p>
         </div>
       </motion.div>
     </div>
