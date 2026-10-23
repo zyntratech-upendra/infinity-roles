@@ -35,7 +35,8 @@ app.use('/api/employee', employeeRoutes);
 
 const PORT = process.env.PORT || 5000;
 
-if (process.env.NODE_ENV !== 'production') {
+// Start server (runs on Render and local, skips if running on Vercel Serverless)
+if (!process.env.VERCEL) {
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 }
 
