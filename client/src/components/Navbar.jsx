@@ -89,7 +89,7 @@ const Navbar = () => {
                   {isActive && (
                     <motion.div
                       layoutId="navPill"
-                      className="absolute inset-0 bg-gradient-to-r from-indigo-600 to-indigo-700 rounded-full shadow-md shadow-indigo-500/20"
+                      className="absolute inset-0 bg-indigo-600 rounded-full shadow-sm"
                       transition={{ type: 'spring', stiffness: 350, damping: 30 }}
                     />
                   )}
@@ -105,9 +105,9 @@ const Navbar = () => {
             <div className="relative group hidden md:inline-block">
               <button 
                 id="portal-login-dropdown-btn"
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-indigo-800 text-white font-semibold text-sm hover:from-indigo-500 hover:to-indigo-700 transition-all shadow-md shadow-indigo-500/25 hover:shadow-lg hover:shadow-indigo-500/35 hover:-translate-y-0.5 active:translate-y-0"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-indigo-600 text-white font-semibold text-sm hover:bg-indigo-700 transition-all shadow-sm active:translate-y-0"
               >
-                <Sparkles className="w-4 h-4 text-cyan-300 animate-pulse" />
+                <Sparkles className="w-4 h-4 text-white" />
                 <span>Access Portals</span>
                 <ChevronDown className="w-4 h-4 ml-0.5 transition-transform group-hover:rotate-180" />
               </button>
