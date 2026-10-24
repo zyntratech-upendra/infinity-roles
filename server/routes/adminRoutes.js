@@ -4,10 +4,13 @@ const Admin = require('../models/Admin');
 const Supervisor = require('../models/Supervisor');
 const Consultant = require('../models/Consultant');
 const Employee = require('../models/Employee');
+const Company = require('../models/Company');
 const generateToken = require('../utils/generateToken');
 const { protectAdmin } = require('../middleware/authMiddleware');
+const { companyUpload } = require('../middleware/upload');
 const crypto = require('crypto');
 const sendEmail = require('../utils/sendEmail');
+const { getOtpEmailTemplate, getSupervisorWelcomeTemplate } = require('../utils/emailTemplates');
 
 // @route   POST /api/admin/login
 // @desc    Auth admin & get token
@@ -388,15 +391,29 @@ router.put('/resetpassword/:resettoken', async (req, res) => {
 // @access  Private (Admin)
 router.get('/stats', protectAdmin, async (req, res) => {
   try {
-    const supervisorCount = await Supervisor.countDocuments().catch(() => 0);
-    const consultantCount = await Consultant.countDocuments().catch(() => 0);
-    const employeeCount = await Employee.countDocuments().catch(() => 0);
+    const [companies, supervisors, consultants, employees] = await Promise.all([
+      Company.countDocuments().catch(() => 0),
+      Supervisor.countDocuments().catch(() => 0),
+      Consultant.countDocuments().catch(() => 0),
+      Employee.countDocuments().catch(() => 0),
+    ]);
+
+    const skillBreakdown = await Employee.aggregate([
+      {
+        $group: {
+          _id: { $ifNull: ['$skillLevel', '$skillType'] },
+          count: { $sum: 1 },
+        },
+      },
+    ]).catch(() => []);
 
     res.json({
-      supervisors: supervisorCount,
-      consultants: consultantCount,
-      employees: employeeCount,
-      totalUsers: supervisorCount + consultantCount + employeeCount,
+      companies,
+      supervisors,
+      consultants,
+      employees,
+      totalUsers: supervisors + consultants + employees,
+      skillBreakdown,
     });
   } catch (error) {
     console.error('Error fetching admin stats:', error);
@@ -495,6 +512,415 @@ router.delete('/consultants/:id', protectAdmin, async (req, res) => {
     } else {
       res.status(404).json({ message: 'Consultant not found' });
     }
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+});
+
+
+
+// ==========================================
+// COMPANY MANAGEMENT (CRUD)
+// ==========================================
+
+// @route   GET /api/admin/companies
+// @desc    Get all registered companies
+// @access  Private (Admin)
+router.get('/companies', protectAdmin, async (req, res) => {
+  try {
+    const companies = await Company.find({})
+      .populate('supervisors', 'name email supervisorId phoneNumber')
+      .sort({ createdAt: -1 });
+
+    // Attach worker counts per company
+    const counts = await Employee.aggregate([
+      { $match: { companyId: { $ne: null } } },
+      { $group: { _id: '$companyId', count: { $sum: 1 } } },
+    ]);
+
+    const countMap = {};
+    counts.forEach((c) => {
+      countMap[c._id.toString()] = c.count;
+    });
+
+    const companiesWithCount = companies.map((comp) => {
+      const obj = comp.toObject();
+      obj.workerCount = countMap[comp._id.toString()] || 0;
+      return obj;
+    });
+
+    res.json(companiesWithCount);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+});
+
+// @route   GET /api/admin/companies/:id
+// @desc    Get single company by ID with its workforce
+// @access  Private (Admin)
+router.get('/companies/:id', protectAdmin, async (req, res) => {
+  try {
+    const company = await Company.findById(req.params.id).populate('supervisors', 'name email supervisorId phoneNumber');
+    if (!company) {
+      return res.status(404).json({ message: 'Company not found' });
+    }
+
+    const employees = await Employee.find({ companyId: company._id }).select('-password').sort({ createdAt: -1 });
+
+    res.json({ company, employees });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+});
+
+// @route   POST /api/admin/companies
+// @desc    Register a new company with wage structure and supervisor assignment
+// @access  Private (Admin)
+router.post('/companies', protectAdmin, companyUpload.single('logo'), async (req, res) => {
+  try {
+    const {
+      companyName,
+      companyCode,
+      registrationNumber,
+      email,
+      phoneNumber,
+      address,
+      city,
+      state,
+      pincode,
+      industry,
+      supervisors,
+      wageParticulars,
+      newSupervisorName,
+      newSupervisorEmail,
+      newSupervisorPhone,
+    } = req.body;
+
+    if (!companyName || !companyCode || !email) {
+      return res.status(400).json({ message: 'Company Name, Unique Code, and Email are required' });
+    }
+
+    // Check unique code
+    const existing = await Company.findOne({ companyCode: companyCode.toUpperCase().trim() });
+    if (existing) {
+      return res.status(400).json({ message: `Company Code "${companyCode}" already exists. Please choose another code.` });
+    }
+
+    // Parse wageParticulars if provided as JSON string (FormData)
+    let parsedWage = {};
+    if (wageParticulars) {
+      try {
+        parsedWage = typeof wageParticulars === 'string' ? JSON.parse(wageParticulars) : wageParticulars;
+      } catch (e) {
+        console.error('Error parsing wageParticulars JSON:', e);
+      }
+    }
+
+    // Parse supervisor IDs
+    let supervisorIds = [];
+    if (supervisors) {
+      try {
+        supervisorIds = typeof supervisors === 'string' ? JSON.parse(supervisors) : supervisors;
+      } catch (e) {
+        if (typeof supervisors === 'string') supervisorIds = supervisors.split(',').map((s) => s.trim()).filter(Boolean);
+      }
+    }
+
+    // Handle Cloudinary logo URL
+    let logoUrl = '';
+    if (req.file && req.file.path) {
+      logoUrl = req.file.path;
+    } else if (req.body.logoUrl) {
+      logoUrl = req.body.logoUrl;
+    }
+
+    // If admin is adding a brand new supervisor on the fly during company registration:
+    if (newSupervisorEmail && newSupervisorName) {
+      const supExists = await Supervisor.findOne({ email: newSupervisorEmail.trim().toLowerCase() });
+      if (!supExists) {
+        const plainPassword = Math.random().toString(36).slice(-8);
+        const supervisorId = 'SUP-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+
+        const newSup = await Supervisor.create({
+          name: newSupervisorName.trim(),
+          email: newSupervisorEmail.trim().toLowerCase(),
+          phoneNumber: newSupervisorPhone || '',
+          password: plainPassword,
+          supervisorId,
+          companyCode: companyCode.toUpperCase().trim(),
+        });
+
+        supervisorIds.push(newSup._id);
+
+        // Send login credentials email with company context
+        try {
+          const loginUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/supervisor/login`;
+          await sendEmail({
+            email: newSup.email,
+            subject: `Welcome to ${companyName} - Your Supervisor Account`,
+            html: getSupervisorWelcomeTemplate({
+              name: newSup.name,
+              email: newSup.email,
+              password: plainPassword,
+              companyName,
+              companyCode: companyCode.toUpperCase().trim(),
+              loginUrl,
+            }),
+          });
+        } catch (mailErr) {
+          console.error('Failed to send supervisor welcome email:', mailErr);
+        }
+      }
+    }
+
+    const bcrypt = require('bcryptjs');
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash('Company@123', salt);
+
+    const company = await Company.create({
+      companyName: companyName.trim(),
+      companyCode: companyCode.toUpperCase().trim(),
+      registrationNumber: registrationNumber || '',
+      email: email.trim().toLowerCase(),
+      phoneNumber: phoneNumber || '',
+      address: address || '',
+      city: city || '',
+      state: state || '',
+      pincode: pincode || '',
+      industry: industry || 'Manufacturing & Staffing',
+      logoUrl,
+      password: hashedPassword,
+      supervisors: supervisorIds,
+      wageParticulars: {
+        unskilled: parsedWage.unskilled || { basicWage: 0, hraDa: 0, overtimeRatePerHour: 0, monthlyWage: 0 },
+        skilled: parsedWage.skilled || { basicWage: 0, hraDa: 0, overtimeRatePerHour: 0, monthlyWage: 0 },
+        highlySkilled: parsedWage.highlySkilled || { basicWage: 0, hraDa: 0, overtimeRatePerHour: 0, monthlyWage: 0 },
+        superSkilled: parsedWage.superSkilled || { basicWage: 0, hraDa: 0, overtimeRatePerHour: 0, monthlyWage: 0 },
+        customTiers: parsedWage.customTiers || [],
+      },
+      createdBy: req.admin._id,
+    });
+
+    // Update supervisors to link this company
+    if (supervisorIds.length > 0) {
+      await Supervisor.updateMany(
+        { _id: { $in: supervisorIds } },
+        { $set: { companyId: company._id, companyCode: company.companyCode } }
+      );
+    }
+
+    const populated = await Company.findById(company._id).populate('supervisors', 'name email supervisorId phoneNumber');
+    res.status(201).json(populated);
+  } catch (error) {
+    console.error('Error creating company:', error);
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+});
+
+// @route   PUT /api/admin/companies/:id
+// @desc    Update company details, supervisors, and wage particulars
+// @access  Private (Admin)
+router.put('/companies/:id', protectAdmin, companyUpload.single('logo'), async (req, res) => {
+  try {
+    const company = await Company.findById(req.params.id);
+    if (!company) {
+      return res.status(404).json({ message: 'Company not found' });
+    }
+
+    const {
+      companyName,
+      registrationNumber,
+      email,
+      phoneNumber,
+      address,
+      city,
+      state,
+      pincode,
+      industry,
+      status,
+      supervisors,
+      wageParticulars,
+    } = req.body;
+
+    if (companyName) company.companyName = companyName.trim();
+    if (registrationNumber !== undefined) company.registrationNumber = registrationNumber;
+    if (email) company.email = email.trim().toLowerCase();
+    if (phoneNumber !== undefined) company.phoneNumber = phoneNumber;
+    if (address !== undefined) company.address = address;
+    if (city !== undefined) company.city = city;
+    if (state !== undefined) company.state = state;
+    if (pincode !== undefined) company.pincode = pincode;
+    if (industry !== undefined) company.industry = industry;
+    if (status !== undefined) company.status = status;
+
+    if (req.file && req.file.path) {
+      company.logoUrl = req.file.path;
+    } else if (req.body.logoUrl) {
+      company.logoUrl = req.body.logoUrl;
+    }
+
+    if (wageParticulars) {
+      try {
+        const parsed = typeof wageParticulars === 'string' ? JSON.parse(wageParticulars) : wageParticulars;
+        company.wageParticulars = {
+          ...company.wageParticulars.toObject(),
+          ...parsed,
+        };
+      } catch (e) {
+        console.error('Error parsing updated wage particulars:', e);
+      }
+    }
+
+    if (supervisors !== undefined) {
+      let supervisorIds = [];
+      try {
+        supervisorIds = typeof supervisors === 'string' ? JSON.parse(supervisors) : supervisors;
+      } catch (e) {
+        if (typeof supervisors === 'string') supervisorIds = supervisors.split(',').map((s) => s.trim()).filter(Boolean);
+      }
+      company.supervisors = supervisorIds;
+
+      // Update supervisors' company linkage
+      await Supervisor.updateMany(
+        { _id: { $in: supervisorIds } },
+        { $set: { companyId: company._id, companyCode: company.companyCode } }
+      );
+    }
+
+    await company.save();
+    const updated = await Company.findById(company._id).populate('supervisors', 'name email supervisorId phoneNumber');
+    res.json(updated);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+});
+
+// @route   DELETE /api/admin/companies/:id
+// @desc    Delete company
+// @access  Private (Admin)
+router.delete('/companies/:id', protectAdmin, async (req, res) => {
+  try {
+    const company = await Company.findById(req.params.id);
+    if (!company) {
+      return res.status(404).json({ message: 'Company not found' });
+    }
+
+    // Unlink supervisors
+    await Supervisor.updateMany(
+      { companyId: company._id },
+      { $unset: { companyId: '', companyCode: '' } }
+    );
+
+    // Unlink employees
+    await Employee.updateMany(
+      { companyId: company._id },
+      { $unset: { companyId: '', companyCode: '' } }
+    );
+
+    await Company.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Company and workforce links removed successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+});
+
+// ==========================================
+// ADMIN OTP PASSWORD RESET
+// ==========================================
+
+// @route   POST /api/admin/forgotpassword
+// @desc    Send 6-digit OTP to Admin email
+// @access  Public
+router.post('/forgotpassword', async (req, res) => {
+  try {
+    const { email } = req.body;
+    const admin = await Admin.findOne({ email: email.trim().toLowerCase() });
+    if (!admin) {
+      return res.status(404).json({ message: 'No admin found with that email address' });
+    }
+
+    const otp = admin.getResetOtp();
+    await admin.save({ validateBeforeSave: false });
+
+    try {
+      await sendEmail({
+        email: admin.email,
+        subject: 'Your Password Reset OTP - The Infinity Roles Admin',
+        html: getOtpEmailTemplate({
+          recipientName: 'Administrator',
+          otp,
+          role: 'Admin',
+          expiresMinutes: 10,
+        }),
+      });
+      res.status(200).json({ message: '6-digit OTP sent to your registered email' });
+    } catch (mailErr) {
+      admin.resetOtp = undefined;
+      admin.resetOtpExpire = undefined;
+      await admin.save({ validateBeforeSave: false });
+      return res.status(500).json({ message: 'Failed to send OTP email' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+});
+
+// @route   POST /api/admin/verify-otp
+// @desc    Verify 6-digit OTP
+// @access  Public
+router.post('/verify-otp', async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({ message: 'Email and OTP are required' });
+    }
+
+    const hashedOtp = crypto.createHash('sha256').update(otp.trim()).digest('hex');
+    const admin = await Admin.findOne({
+      email: email.trim().toLowerCase(),
+      resetOtp: hashedOtp,
+      resetOtpExpire: { $gt: Date.now() },
+    });
+
+    if (!admin) {
+      return res.status(400).json({ message: 'Invalid or expired OTP code' });
+    }
+
+    res.json({ message: 'OTP verified successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+});
+
+// @route   POST /api/admin/resetpassword-otp
+// @desc    Reset password after OTP verification
+// @access  Public
+router.post('/resetpassword-otp', async (req, res) => {
+  try {
+    const { email, otp, password } = req.body;
+    if (!email || !otp || !password) {
+      return res.status(400).json({ message: 'Email, OTP, and new password are required' });
+    }
+
+    const hashedOtp = crypto.createHash('sha256').update(otp.trim()).digest('hex');
+    const admin = await Admin.findOne({
+      email: email.trim().toLowerCase(),
+      resetOtp: hashedOtp,
+      resetOtpExpire: { $gt: Date.now() },
+    });
+
+    if (!admin) {
+      return res.status(400).json({ message: 'Invalid or expired OTP code' });
+    }
+
+    admin.password = password;
+    admin.resetOtp = undefined;
+    admin.resetOtpExpire = undefined;
+    admin.resetPasswordToken = undefined;
+    admin.resetPasswordExpire = undefined;
+    await admin.save();
+
+    res.json({ message: 'Password reset successfully. You can now login.' });
   } catch (error) {
     res.status(500).json({ message: 'Server Error', error: error.message });
   }

@@ -36,21 +36,46 @@ const employeeSchema = new mongoose.Schema({
     ref: 'Supervisor',
     required: true,
   },
+  companyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Company',
+  },
+  companyCode: {
+    type: String,
+  },
   dob: { type: Date },
   gender: { type: String, enum: ['Male', 'Female', 'Other'] },
   qualifications: { type: String },
   institutions: { type: String },
   passingYear: { type: String },
-  skillType: { type: String, enum: ['Skilled', 'Unskilled'] },
+  skillType: { type: String }, // legacy field
+  skillLevel: {
+    type: String,
+    enum: ['Unskilled', 'Skilled', 'Highly Skilled', 'Super Skilled', 'User-Defined'],
+    default: 'Unskilled',
+  },
   skills: { type: [String] },
   experienceYears: { type: Number },
   previousRoles: { type: String },
   previousSalary: { type: Number },
+  // Allotted Wage / Salary Particulars
+  wageParticulars: {
+    tierName: { type: String },
+    basicWage: { type: Number, default: 0 },
+    hraDa: { type: Number, default: 0 },
+    overtimeRatePerHour: { type: Number, default: 0 },
+    monthlyWage: { type: Number, default: 0 },
+    grossSalary: { type: Number, default: 0 },
+    netSalary: { type: Number, default: 0 },
+    calculationNotes: { type: String },
+  },
   aadhaarUrl: { type: String },
   panUrl: { type: String },
   profilePhotoUrl: { type: String },
   resetPasswordToken: String,
   resetPasswordExpire: Date,
+  resetOtp: String,
+  resetOtpExpire: Date,
 }, { timestamps: true });
 
 // Hash password before saving
@@ -73,6 +98,14 @@ employeeSchema.methods.getResetPasswordToken = function () {
   this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
   this.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
   return resetToken;
+};
+
+// Generate 6-digit OTP
+employeeSchema.methods.getResetOtp = function () {
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  this.resetOtp = crypto.createHash('sha256').update(otp).digest('hex');
+  this.resetOtpExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+  return otp;
 };
 
 const Employee = mongoose.model('Employee', employeeSchema);

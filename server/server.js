@@ -6,6 +6,7 @@ const adminRoutes = require('./routes/adminRoutes');
 const supervisorRoutes = require('./routes/supervisorRoutes');
 const consultantRoutes = require('./routes/consultantRoutes');
 const employeeRoutes = require('./routes/employeeRoutes');
+const companyRoutes = require('./routes/companyRoutes');
 
 // Connect to MongoDB
 connectDB();
@@ -32,6 +33,9 @@ app.use('/api/consultant', consultantRoutes);
 
 // Employee API Routes
 app.use('/api/employee', employeeRoutes);
+
+// Company API Routes
+app.use('/api/company', companyRoutes);
 
 const PORT = process.env.PORT || 5000;
 

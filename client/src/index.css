@@ -102,3 +102,77 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* Liquid Glassmorphism & Aurora Effect */
+.liquid-glass-drawer {
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(28px) saturate(200%);
+  -webkit-backdrop-filter: blur(28px) saturate(200%);
+  border-left: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 
+    -20px 0 60px -10px rgba(79, 70, 229, 0.16),
+    -5px 0 25px -5px rgba(15, 23, 42, 0.08),
+    inset 1px 0 2px 0 rgba(255, 255, 255, 0.95);
+}
+
+.liquid-glass-panel {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow: 
+    0 8px 32px 0 rgba(31, 38, 135, 0.05),
+    inset 0 1px 1px 0 rgba(255, 255, 255, 0.95);
+}
+
+.liquid-glass-input {
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.03);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.liquid-glass-input:focus {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(99, 102, 241, 0.85);
+  box-shadow: 
+    0 0 0 4px rgba(99, 102, 241, 0.14),
+    inset 0 1px 2px rgba(255, 255, 255, 0.95);
+}
+
+.liquid-glass-pill {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 15px -3px rgba(99, 102, 241, 0.1);
+}
+
+@keyframes liquid-float {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate(15px, -15px) scale(1.08);
+  }
+}
+
+.animate-liquid-float {
+  animation: liquid-float 10s ease-in-out infinite;
+}
+
+@keyframes liquid-float-reverse {
+  0%, 100% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  50% {
+    transform: translate(-15px, 15px) scale(0.94);
+  }
+}
+
+.animate-liquid-float-reverse {
+  animation: liquid-float-reverse 12s ease-in-out infinite;
+}
+

@@ -1,5 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, X, Loader2, Briefcase, Mail, Phone, MapPin } from 'lucide-react';
+import { 
+  Plus, 
+  Search, 
+  Edit2, 
+  Trash2, 
+  X, 
+  Loader2, 
+  Briefcase, 
+  Mail, 
+  Phone, 
+  MapPin, 
+  FileText, 
+  Eye, 
+  ExternalLink,
+  Award,
+  DollarSign
+} from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -8,19 +24,12 @@ const EmployeeManagement = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
+  const [skillFilter, setSkillFilter] = useState('All');
   
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [currentEmployee, setCurrentEmployee] = useState(null);
   const navigate = useNavigate();
-  
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    employeeId: '',
-    phoneNumber: '',
-    address: ''
-  });
   
   const [actionLoading, setActionLoading] = useState(false);
 
@@ -36,7 +45,7 @@ const EmployeeManagement = () => {
           'Authorization': `Bearer ${token}`
         }
       });
-      if (!response.ok) throw new Error('Failed to fetch employees');
+      if (!response.ok) throw new Error('Failed to fetch workforce data');
       const data = await response.json();
       setEmployees(data);
     } catch (err) {
@@ -46,79 +55,8 @@ const EmployeeManagement = () => {
     }
   };
 
-  const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
-
-  const openModal = (employee = null) => {
-    if (employee) {
-      setCurrentEmployee(employee);
-      setFormData({
-        name: employee.name,
-        email: employee.email,
-        employeeId: employee.employeeId,
-        phoneNumber: employee.phoneNumber || '',
-        address: employee.address || ''
-      });
-    } else {
-      setCurrentEmployee(null);
-      setFormData({
-        name: '',
-        email: '',
-        employeeId: '',
-        phoneNumber: '',
-        address: ''
-      });
-    }
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    setCurrentEmployee(null);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setActionLoading(true);
-    const token = localStorage.getItem('supervisorToken')?.replace(/^"|"$/g, '');
-    
-    try {
-      const url = currentEmployee 
-        ? `${import.meta.env.VITE_API_URL}/supervisor/employees/${currentEmployee._id}`
-        : `${import.meta.env.VITE_API_URL}/supervisor/employees`;
-        
-      const method = currentEmployee ? 'PUT' : 'POST';
-
-      const response = await fetch(url, {
-        method,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(formData)
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Action failed');
-      }
-
-      await fetchEmployees();
-      closeModal();
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const openDeleteModal = (employee) => {
-    setCurrentEmployee(employee);
-    setIsDeleteModalOpen(true);
-  };
-
   const handleDelete = async () => {
+    if (!currentEmployee) return;
     setActionLoading(true);
     const token = localStorage.getItem('supervisorToken')?.replace(/^"|"$/g, '');
     
@@ -130,9 +68,9 @@ const EmployeeManagement = () => {
         }
       });
 
-      if (!response.ok) throw new Error('Failed to delete employee');
+      if (!response.ok) throw new Error('Failed to remove worker');
 
-      await fetchEmployees();
+      setEmployees(prev => prev.filter(e => e._id !== currentEmployee._id));
       setIsDeleteModalOpen(false);
     } catch (err) {
       alert(err.message);
@@ -141,202 +79,323 @@ const EmployeeManagement = () => {
     }
   };
 
-  const filteredEmployees = employees.filter(emp => 
-    emp.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.employeeId.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredEmployees = employees.filter(emp => {
+    const matchesSearch = 
+      emp.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      emp.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      emp.employeeId.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const empSkill = emp.skillLevel || (emp.skillType === 'Skilled' ? 'Skilled' : 'Unskilled');
+    const matchesSkill = skillFilter === 'All' || empSkill === skillFilter;
+
+    return matchesSearch && matchesSkill;
+  });
 
   return (
-    <div className="p-6 sm:p-8 max-w-7xl mx-auto w-full space-y-6">
-      <div className="bg-white/60 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="p-4 sm:p-8 max-w-7xl mx-auto w-full space-y-6 font-sans">
+      
+      {/* Top Banner */}
+      <div className="bg-white rounded-3xl border border-slate-200/80 p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 shadow-xs">
         <div>
-          <h1 className="text-3xl font-extrabold text-[#0e3d79] tracking-tight pb-1">Employee Management</h1>
-          <p className="text-gray-500 mt-1 font-medium text-sm">Manage your team members and access credentials.</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+            Workforce Roster & Salary Allotments
+          </h1>
+          <p className="text-slate-500 mt-1 text-xs sm:text-sm">
+            View and manage workers enrolled under your assigned company code.
+          </p>
         </div>
         <button 
           onClick={() => navigate('/supervisor/employees/add')}
-          className="flex items-center space-x-2 bg-gradient-to-r from-[#0e3d79] to-[#1553a1] hover:from-[#1553a1] hover:to-[#0e3d79] text-white px-5 py-2.5 rounded-xl font-bold shadow-lg shadow-[#0e3d79]/30 transition-all hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0 active:scale-95"
+          className="flex items-center space-x-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-2xl font-bold text-xs shadow-md shadow-indigo-600/20 active:scale-95 transition-all cursor-pointer"
         >
-          <Plus size={18} />
-          <span>Add Employee</span>
+          <Plus size={16} />
+          <span>Register New Worker</span>
         </button>
       </div>
 
-      <div className="bg-white/60 backdrop-blur-xl rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white p-6">
-        <div className="flex justify-between items-center mb-6">
+      {/* Filter and Table Container */}
+      <div className="bg-white rounded-3xl border border-slate-200/80 p-6 shadow-xs space-y-5">
+        
+        {/* Search & Skill Tier Filters */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
           <div className="relative w-full max-w-md">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={18} />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
             <input 
               type="text" 
-              placeholder="Search employees..." 
+              placeholder="Search by worker name, ID or email..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#0e3d79]/20 focus:border-[#0e3d79] bg-white/50 transition-all text-sm"
+              className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium focus:outline-none focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all"
             />
+          </div>
+
+          {/* Skill Filter Buttons */}
+          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0">
+            {['All', 'Unskilled', 'Skilled', 'Highly Skilled', 'Super Skilled'].map((lvl) => (
+              <button
+                key={lvl}
+                onClick={() => setSkillFilter(lvl)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap cursor-pointer ${
+                  skillFilter === lvl 
+                    ? 'bg-indigo-600 text-white shadow-xs' 
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {lvl}
+              </button>
+            ))}
           </div>
         </div>
 
+        {/* Table Body */}
         {loading ? (
-          <div className="flex justify-center items-center h-48">
-            <Loader2 className="w-8 h-8 animate-spin text-[#0e3d79]" />
+          <div className="flex flex-col items-center justify-center h-48 gap-3">
+            <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+            <p className="text-xs text-slate-400 font-bold">Loading workforce records...</p>
           </div>
         ) : error ? (
-          <div className="text-center text-red-500 py-8 font-medium bg-red-50 rounded-xl border border-red-100">{error}</div>
+          <div className="text-center text-rose-600 py-8 font-medium bg-rose-50 rounded-2xl border border-rose-100 text-xs">
+            {error}
+          </div>
+        ) : filteredEmployees.length === 0 ? (
+          <div className="text-center py-12">
+            <Briefcase className="w-12 h-12 text-slate-300 mx-auto mb-2" />
+            <p className="text-sm font-bold text-slate-700">No workforce matches found</p>
+            <p className="text-xs text-slate-400 mt-0.5">Try clearing filters or enroll a new worker.</p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
+            <table className="w-full text-left border-collapse text-xs">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="pb-3 text-sm font-semibold text-gray-600">Employee</th>
-                  <th className="pb-3 text-sm font-semibold text-gray-600">ID</th>
-                  <th className="pb-3 text-sm font-semibold text-gray-600">Contact</th>
-                  <th className="pb-3 text-sm font-semibold text-gray-600 text-right">Actions</th>
+                <tr className="bg-slate-50/70 text-slate-600 font-bold border-b border-slate-200/80">
+                  <th className="py-3 px-4">Worker Profile</th>
+                  <th className="py-3 px-4">Company Code</th>
+                  <th className="py-3 px-4">Skill Level Tier</th>
+                  <th className="py-3 px-4">Wage Structure</th>
+                  <th className="py-3 px-4">Cloudinary Docs</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody>
-                {filteredEmployees.length === 0 ? (
-                  <tr>
-                    <td colSpan="4" className="text-center py-8 text-gray-500">No employees found.</td>
-                  </tr>
-                ) : (
-                  filteredEmployees.map((emp) => (
-                    <tr key={emp._id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
-                      <td className="py-4">
-                        <div className="flex items-center">
-                          <div className="h-10 w-10 rounded-full bg-[#0e3d79]/10 flex items-center justify-center text-[#0e3d79] font-bold">
-                            {emp.name.charAt(0)}
+              <tbody className="divide-y divide-slate-100 font-medium">
+                {filteredEmployees.map((emp) => {
+                  const skill = emp.skillLevel || (emp.skillType === 'Skilled' ? 'Skilled' : 'Unskilled');
+                  const basicWage = emp.wageParticulars?.basicWage || 0;
+                  const monthlyWage = emp.wageParticulars?.monthlyWage || 0;
+
+                  return (
+                    <tr key={emp._id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-3">
+                          <div className="h-10 w-10 rounded-2xl bg-indigo-50 border border-indigo-100 overflow-hidden flex items-center justify-center text-indigo-700 font-bold text-xs flex-shrink-0">
+                            {emp.profilePhotoUrl ? (
+                              <img src={emp.profilePhotoUrl} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              emp.name.substring(0, 2).toUpperCase()
+                            )}
                           </div>
-                          <div className="ml-3">
-                            <p className="text-sm font-semibold text-gray-900">{emp.name}</p>
-                            <p className="text-xs text-gray-500">{emp.email}</p>
+                          <div>
+                            <p className="text-xs font-bold text-slate-900">{emp.name}</p>
+                            <span className="font-mono text-[10px] text-indigo-600 font-semibold">{emp.employeeId}</span>
+                            <span className="text-[10px] text-slate-400 block">{emp.email}</span>
                           </div>
                         </div>
                       </td>
-                      <td className="py-4">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                          {emp.employeeId}
+
+                      <td className="py-3.5 px-4 font-mono font-bold text-slate-700">
+                        <span className="bg-slate-100 px-2 py-0.5 rounded-md text-[10px]">
+                          {emp.companyCode || 'ASSIGNED'}
                         </span>
                       </td>
-                      <td className="py-4">
-                        <div className="text-sm text-gray-600">{emp.phoneNumber || 'N/A'}</div>
+
+                      <td className="py-3.5 px-4">
+                        <span className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                          skill === 'Unskilled' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
+                          skill === 'Skilled' ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' :
+                          skill === 'Highly Skilled' ? 'bg-purple-50 text-purple-700 border border-purple-200' :
+                          'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        }`}>
+                          <Award className="w-3 h-3" />
+                          <span>{skill}</span>
+                        </span>
                       </td>
-                      <td className="py-4 text-right">
-                        <button 
-                          onClick={() => openModal(emp)}
-                          className="text-gray-400 hover:text-[#0e3d79] transition-colors p-2"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button 
-                          onClick={() => openDeleteModal(emp)}
-                          className="text-gray-400 hover:text-red-500 transition-colors p-2 ml-1"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+
+                      <td className="py-3.5 px-4">
+                        <span className="font-mono font-extrabold text-emerald-700 text-xs">
+                          ₹{monthlyWage ? monthlyWage.toLocaleString('en-IN') : 'N/A'}/mo
+                        </span>
+                        <span className="block text-[10px] text-slate-400 font-mono">
+                          ₹{basicWage}/day Basic
+                        </span>
+                      </td>
+
+                      <td className="py-3.5 px-4">
+                        <div className="flex items-center gap-2">
+                          {emp.aadhaarUrl ? (
+                            <a 
+                              href={emp.aadhaarUrl} 
+                              target="_blank" 
+                              rel="noreferrer" 
+                              className="px-2 py-0.5 rounded bg-slate-100 hover:bg-indigo-50 text-indigo-600 font-bold text-[10px] flex items-center gap-0.5"
+                            >
+                              <FileText className="w-3 h-3" /> Aadhaar
+                            </a>
+                          ) : (
+                            <span className="text-[10px] text-slate-300">No Aadhaar</span>
+                          )}
+
+                          {emp.panUrl && (
+                            <a 
+                              href={emp.panUrl} 
+                              target="_blank" 
+                              rel="noreferrer" 
+                              className="px-2 py-0.5 rounded bg-slate-100 hover:bg-indigo-50 text-indigo-600 font-bold text-[10px] flex items-center gap-0.5"
+                            >
+                              <FileText className="w-3 h-3" /> PAN
+                            </a>
+                          )}
+                        </div>
+                      </td>
+
+                      <td className="py-3.5 px-4 text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => { setCurrentEmployee(emp); setIsDetailModalOpen(true); }}
+                            className="p-1.5 rounded-xl bg-slate-50 hover:bg-indigo-50 text-slate-600 hover:text-indigo-600 transition-colors"
+                            title="View Full Profile"
+                          >
+                            <Eye size={15} />
+                          </button>
+                          <button
+                            onClick={() => { setCurrentEmployee(emp); setIsDeleteModalOpen(true); }}
+                            className="p-1.5 rounded-xl bg-slate-50 hover:bg-rose-50 text-slate-600 hover:text-rose-600 transition-colors"
+                            title="Delete Worker"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
-                  ))
-                )}
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
       </div>
 
-      {/* Create/Edit Modal */}
+      {/* Detail Modal */}
       <AnimatePresence>
-        {isModalOpen && (
-          <div className="fixed inset-0 z-50 overflow-hidden">
-            <motion.div 
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm"
-              onClick={closeModal}
-            />
-            <div className="absolute inset-y-0 right-0 max-w-full flex">
-              <motion.div 
-                initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }} transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className="w-screen max-w-xl relative z-10"
-              >
-                <div className="h-full flex flex-col bg-white/95 backdrop-blur-3xl border-l border-gray-200 shadow-[0_0_60px_rgba(0,0,0,0.2)]">
-                  <div className="flex justify-between items-center p-6 border-b border-gray-100 bg-white/80 backdrop-blur-xl shrink-0">
-                    <h2 className="text-2xl font-bold text-gray-900 tracking-tight">{currentEmployee ? 'Edit Employee' : 'Add New Employee'}</h2>
-                    <button onClick={closeModal} className="w-8 h-8 flex items-center justify-center rounded-full bg-white hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors shadow-sm border border-gray-200">
-                      <X size={18} />
-                    </button>
+        {isDetailModalOpen && currentEmployee && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsDetailModalOpen(false)} />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl p-6 z-10 space-y-5"
+            >
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-600 text-white font-bold flex items-center justify-center">
+                    {currentEmployee.name.substring(0, 2).toUpperCase()}
                   </div>
-                  <div className="flex-1 overflow-y-auto custom-scrollbar">
-                    <form onSubmit={handleSubmit} className="p-7 flex flex-col min-h-full">
-                      <div className="space-y-5 flex-1">
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Full Name</label>
-                          <input type="text" name="name" required value={formData.name} onChange={handleInputChange} className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-[#0e3d79] focus:ring-4 focus:ring-[#0e3d79]/10 text-sm font-medium transition-all shadow-sm placeholder-gray-400 text-gray-900" placeholder="John Doe" />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email Address</label>
-                          <input type="email" name="email" required value={formData.email} onChange={handleInputChange} className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-[#0e3d79] focus:ring-4 focus:ring-[#0e3d79]/10 text-sm font-medium transition-all shadow-sm placeholder-gray-400 text-gray-900" placeholder="john@example.com" />
-                        </div>
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-1.5">Employee ID</label>
-                          <input type="text" name="employeeId" required value={formData.employeeId} onChange={handleInputChange} className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-[#0e3d79] focus:ring-4 focus:ring-[#0e3d79]/10 text-sm font-medium transition-all shadow-sm placeholder-gray-400 text-gray-900" placeholder="EMP-001" />
-                        </div>
-                        <div className="grid grid-cols-2 gap-5">
-                          <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Phone (Optional)</label>
-                            <input type="text" name="phoneNumber" value={formData.phoneNumber} onChange={handleInputChange} className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-[#0e3d79] focus:ring-4 focus:ring-[#0e3d79]/10 text-sm font-medium transition-all shadow-sm placeholder-gray-400 text-gray-900" placeholder="+1 234 567 890" />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Address (Optional)</label>
-                            <input type="text" name="address" value={formData.address} onChange={handleInputChange} className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl focus:outline-none focus:border-[#0e3d79] focus:ring-4 focus:ring-[#0e3d79]/10 text-sm font-medium transition-all shadow-sm placeholder-gray-400 text-gray-900" placeholder="City, Country" />
-                          </div>
-                        </div>
-                        {!currentEmployee && (
-                          <div className="bg-gradient-to-r from-blue-50/80 to-indigo-50/80 border border-blue-100/60 rounded-2xl p-5 mt-6 flex items-start shadow-sm">
-                            <div className="bg-white rounded-full p-2.5 shadow-sm mr-4 flex-shrink-0 mt-0.5 text-blue-600 border border-blue-100">
-                              <Mail className="w-5 h-5" />
-                            </div>
-                            <div>
-                              <p className="text-[15px] font-bold text-gray-900 mb-1">Automated Credentials</p>
-                              <p className="text-sm text-gray-600 leading-relaxed">An email with secure login credentials will be automatically generated and sent to this employee upon creation.</p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      <div className="mt-8 flex justify-end pt-6 border-t border-gray-100 shrink-0 sticky bottom-0 bg-white/90 backdrop-blur-xl -mx-7 -mb-7 px-7 pb-7 pt-5">
-                        <button type="submit" disabled={actionLoading} className="px-6 py-3 text-sm font-bold text-white bg-gradient-to-r from-[#0e3d79] to-[#1553a1] hover:from-[#1553a1] hover:to-[#0e3d79] rounded-xl transition-all shadow-lg shadow-[#0e3d79]/25 flex items-center min-w-[140px] justify-center w-full sm:w-auto hover:-translate-y-0.5 active:translate-y-0 active:scale-95">
-                          {actionLoading ? <Loader2 size={18} className="animate-spin" /> : currentEmployee ? 'Save Changes' : 'Add Employee'}
-                        </button>
-                      </div>
-                    </form>
+                  <div>
+                    <h3 className="font-extrabold text-slate-900 text-base">{currentEmployee.name}</h3>
+                    <p className="text-xs text-slate-500 font-mono">{currentEmployee.employeeId} • {currentEmployee.companyCode || 'Company'}</p>
                   </div>
                 </div>
-              </motion.div>
-            </div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* Delete Modal */}
-      <AnimatePresence>
-        {isDeleteModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="absolute inset-0 bg-gray-900/40 backdrop-blur-sm" onClick={() => setIsDeleteModalOpen(false)} />
-            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="bg-white rounded-2xl shadow-xl w-full max-w-sm relative z-10 overflow-hidden p-6 text-center">
-              <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4">
-                <Trash2 size={24} />
+                <button onClick={() => setIsDetailModalOpen(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-800">
+                  <X size={20} />
+                </button>
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">Delete Employee</h3>
-              <p className="text-sm text-gray-500 mb-6">Are you sure you want to delete <strong>{currentEmployee?.name}</strong>? This action cannot be undone.</p>
-              <div className="flex gap-3 justify-center">
-                <button onClick={() => setIsDeleteModalOpen(false)} className="px-4 py-2 text-sm font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors w-full">Cancel</button>
-                <button onClick={handleDelete} disabled={actionLoading} className="px-4 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors w-full flex items-center justify-center">
-                  {actionLoading ? <Loader2 size={16} className="animate-spin" /> : 'Delete'}
+
+              {/* Wage particulars card */}
+              <div className="p-4 rounded-2xl bg-indigo-50/50 border border-indigo-100 space-y-2">
+                <span className="text-[11px] font-extrabold text-indigo-900 uppercase tracking-wider block">Allotted Remuneration Breakdown</span>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <span className="text-slate-500">Skill Level:</span>
+                    <span className="font-bold text-slate-900 ml-1">{currentEmployee.skillLevel || 'Skilled'}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Basic Daily:</span>
+                    <span className="font-bold text-slate-900 ml-1">₹{currentEmployee.wageParticulars?.basicWage || 0}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">HRA & DA:</span>
+                    <span className="font-bold text-slate-900 ml-1">₹{currentEmployee.wageParticulars?.hraDa || 0}</span>
+                  </div>
+                  <div>
+                    <span className="text-slate-500">Overtime Rate:</span>
+                    <span className="font-bold text-slate-900 ml-1">₹{currentEmployee.wageParticulars?.overtimeRatePerHour || 0}/hr</span>
+                  </div>
+                  <div className="col-span-2 pt-2 border-t border-indigo-100 flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-600">Calculated Monthly Wage:</span>
+                    <span className="text-base font-extrabold text-emerald-700 font-mono">
+                      ₹{currentEmployee.wageParticulars?.monthlyWage?.toLocaleString('en-IN') || 'N/A'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Verified Cloudinary Proofs */}
+              <div>
+                <span className="text-xs font-bold text-slate-800 block mb-2">Cloudinary Verified Documents</span>
+                <div className="flex gap-3">
+                  {currentEmployee.aadhaarUrl && (
+                    <a href={currentEmployee.aadhaarUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-50 border hover:bg-indigo-50 text-indigo-600 text-xs font-bold">
+                      <FileText size={14} /> Aadhaar Proof <ExternalLink size={12} />
+                    </a>
+                  )}
+                  {currentEmployee.panUrl && (
+                    <a href={currentEmployee.panUrl} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-50 border hover:bg-indigo-50 text-indigo-600 text-xs font-bold">
+                      <FileText size={14} /> PAN Proof <ExternalLink size={12} />
+                    </a>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button onClick={() => setIsDetailModalOpen(false)} className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs">
+                  Close
                 </button>
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
+
+      {/* Delete Modal */}
+      <AnimatePresence>
+        {isDeleteModalOpen && currentEmployee && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+            <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm" onClick={() => setIsDeleteModalOpen(false)} />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="relative w-full max-w-sm bg-white rounded-3xl shadow-2xl p-6 z-10 text-center space-y-4"
+            >
+              <div className="w-12 h-12 bg-rose-50 text-rose-600 rounded-2xl flex items-center justify-center mx-auto">
+                <Trash2 size={24} />
+              </div>
+              <h3 className="font-extrabold text-slate-900 text-base">Remove Worker?</h3>
+              <p className="text-xs text-slate-500">
+                Are you sure you want to remove <strong>{currentEmployee.name}</strong> ({currentEmployee.employeeId}) from this company roster?
+              </p>
+              <div className="flex gap-2 justify-center pt-2">
+                <button onClick={() => setIsDeleteModalOpen(false)} className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs">
+                  Cancel
+                </button>
+                <button onClick={handleDelete} disabled={actionLoading} className="px-4 py-2 rounded-xl bg-rose-600 text-white font-bold text-xs shadow-md">
+                  {actionLoading ? 'Removing...' : 'Confirm Remove'}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 };

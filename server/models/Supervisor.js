@@ -31,8 +31,17 @@ const supervisorSchema = new mongoose.Schema({
     type: String,
     default: 'Supervisor',
   },
+  companyId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Company',
+  },
+  companyCode: {
+    type: String,
+  },
   resetPasswordToken: String,
   resetPasswordExpire: Date,
+  resetOtp: String,
+  resetOtpExpire: Date,
 }, { timestamps: true });
 
 // Hash password before saving
@@ -64,6 +73,14 @@ supervisorSchema.methods.getResetPasswordToken = function () {
   this.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
 
   return resetToken;
+};
+
+// Generate 6-digit OTP
+supervisorSchema.methods.getResetOtp = function () {
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  this.resetOtp = crypto.createHash('sha256').update(otp).digest('hex');
+  this.resetOtpExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+  return otp;
 };
 
 const Supervisor = mongoose.model('Supervisor', supervisorSchema);

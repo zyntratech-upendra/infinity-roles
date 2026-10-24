@@ -218,131 +218,145 @@ const ConsultantManagement = () => {
         )}
       </div>
 
-      {/* Create / Edit Slide-over Panel with Glassmorphism */}
+      {/* Create / Edit Slide-over Panel with Liquid Glassmorphism */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex justify-end">
+          <div className="fixed inset-0 z-50 overflow-hidden">
+            {/* Liquid Glass Backdrop Blur */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-slate-950/50 backdrop-blur-sm"
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 bg-slate-950/40 backdrop-blur-md"
               onClick={() => setIsModalOpen(false)}
             />
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 28, stiffness: 240 }}
-              className="bg-white/95 backdrop-blur-2xl border-l border-white/60 shadow-2xl w-full max-w-lg h-full relative z-10 overflow-y-auto flex flex-col"
-            >
-              <div className="p-6 border-b border-slate-100 flex justify-between items-start bg-slate-50/50">
-                <div>
-                  <h2 className="text-xl font-extrabold text-slate-900 font-display">
-                    {editingId ? 'Edit Consultant' : 'Add New Consultant'}
-                  </h2>
-                  <p className="text-xs text-slate-500 mt-1 font-medium">
-                    {editingId ? 'Update consultant profile and contact records.' : 'They will receive an automated invitation email with credentials.'}
-                  </p>
+
+            {/* Slide-over Right Drawer Container */}
+            <div className="fixed inset-y-0 right-0 max-w-full flex pl-4 sm:pl-10 pointer-events-none z-10">
+              <motion.div
+                initial={{ x: '100%', opacity: 0.7 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: '100%', opacity: 0 }}
+                transition={{ type: 'spring', damping: 28, stiffness: 260 }}
+                className="w-screen max-w-md sm:max-w-lg pointer-events-auto h-full flex flex-col relative overflow-hidden liquid-glass-drawer text-slate-800"
+              >
+                {/* Liquid Aurora Background Lights */}
+                <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-gradient-to-br from-purple-500/20 via-indigo-500/15 to-pink-500/15 blur-3xl pointer-events-none animate-liquid-float" />
+                <div className="absolute top-1/2 -left-28 w-72 h-72 rounded-full bg-gradient-to-tr from-cyan-400/20 via-blue-500/15 to-purple-400/15 blur-3xl pointer-events-none animate-liquid-float-reverse" />
+
+                {/* Top Header */}
+                <div className="relative z-20 px-6 py-5 bg-white/60 backdrop-blur-xl border-b border-white/70 flex items-center justify-between shadow-xs">
+                  <div>
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 text-[10px] font-extrabold uppercase tracking-wider border border-purple-200/60 shadow-2xs mb-1.5">
+                      <span>Consultant Provisioning</span>
+                    </div>
+                    <h2 className="text-xl font-extrabold text-slate-900 font-display">
+                      {editingId ? 'Edit Consultant' : 'Add New Consultant'}
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                      {editingId ? 'Update consultant profile and contact records.' : 'They will receive an automated invitation email with credentials.'}
+                    </p>
+                  </div>
+                  <button 
+                    onClick={() => setIsModalOpen(false)}
+                    className="p-2 text-slate-400 hover:text-slate-700 hover:bg-white/80 rounded-full transition-colors cursor-pointer"
+                  >
+                    <X size={18} />
+                  </button>
                 </div>
-                <button 
-                  onClick={() => setIsModalOpen(false)}
-                  className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200/50 rounded-full transition-colors"
-                >
-                  <X size={18} />
-                </button>
-              </div>
 
-              <form onSubmit={handleSubmit} className="p-6 flex-1 flex flex-col justify-between">
-                <div>
-                  {error && (
-                    <div className="mb-5 p-3.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-xl text-xs font-bold">
-                      {error}
-                    </div>
-                  )}
+                <form onSubmit={handleSubmit} className="p-6 flex-1 flex flex-col justify-between overflow-y-auto relative z-10">
+                  <div>
+                    {error && (
+                      <div className="mb-5 p-3.5 bg-rose-50/90 border border-rose-200 text-rose-700 rounded-2xl text-xs font-bold backdrop-blur-sm shadow-xs">
+                        {error}
+                      </div>
+                    )}
 
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                        Consultant Full Name
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 outline-none transition-all text-sm font-medium"
-                        placeholder="Dr. Sarah Connor"
-                      />
-                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                          Consultant Full Name
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          className="w-full px-3.5 py-2.5 liquid-glass-input rounded-xl text-xs font-medium text-slate-900 outline-none"
+                          placeholder="Dr. Sarah Connor"
+                        />
+                      </div>
 
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                        Email Address
-                      </label>
-                      <input
-                        type="email"
-                        required
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 outline-none transition-all text-sm font-medium"
-                        placeholder="consultant@domain.com"
-                      />
-                    </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                          Email Address
+                        </label>
+                        <input
+                          type="email"
+                          required
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          className="w-full px-3.5 py-2.5 liquid-glass-input rounded-xl text-xs font-medium text-slate-900 outline-none"
+                          placeholder="consultant@domain.com"
+                        />
+                      </div>
 
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                        Phone Number
-                      </label>
-                      <input
-                        type="tel"
-                        value={formData.phoneNumber}
-                        onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 outline-none transition-all text-sm font-medium"
-                        placeholder="+1 (555) 000-0000"
-                      />
-                    </div>
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                          Phone Number
+                        </label>
+                        <input
+                          type="tel"
+                          value={formData.phoneNumber}
+                          onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                          className="w-full px-3.5 py-2.5 liquid-glass-input rounded-xl text-xs font-medium text-slate-900 outline-none"
+                          placeholder="+1 (555) 000-0000"
+                        />
+                      </div>
 
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                        Engagement / Practice Address
-                      </label>
-                      <textarea
-                        rows={3}
-                        value={formData.address}
-                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 outline-none transition-all text-sm font-medium resize-none"
-                        placeholder="Enter engagement office or agency address..."
-                      />
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                          Engagement / Practice Address
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={formData.address}
+                          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                          className="w-full px-3.5 py-2.5 liquid-glass-input rounded-xl text-xs font-medium text-slate-900 outline-none resize-none"
+                          placeholder="Enter engagement office or agency address..."
+                        />
+                      </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-end space-x-3">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 font-bold text-xs transition-colors"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={creating}
-                    className="flex items-center justify-center bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 text-white px-6 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-purple-500/25 transition-all hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed"
-                  >
-                    {creating ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      editingId ? 'Update Consultant' : 'Create Consultant'
-                    )}
-                  </button>
-                </div>
-              </form>
-            </motion.div>
+                  <div className="mt-8 pt-5 border-t border-white/70 flex items-center justify-end space-x-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsModalOpen(false)}
+                      className="px-4 py-2.5 rounded-xl border border-white/80 bg-white/60 hover:bg-white text-slate-600 hover:text-slate-900 font-bold text-xs shadow-2xs transition-all cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={creating}
+                      className="flex items-center justify-center bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 hover:from-purple-700 hover:to-indigo-800 text-white px-6 py-2.5 rounded-xl font-bold text-xs shadow-md shadow-purple-600/25 active:scale-95 transition-all disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      {creating ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        editingId ? 'Update Consultant' : 'Create Consultant'
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
           </div>
         )}
       </AnimatePresence>

@@ -5,6 +5,11 @@ const generateToken = require('../utils/generateToken');
 const { protectEmployee } = require('../middleware/authMiddleware');
 const crypto = require('crypto');
 const sendEmail = require('../utils/sendEmail');
+const { getOtpEmailTemplate } = require('../utils/emailTemplates');
+
+// ==========================================
+// AUTHENTICATION
+// ==========================================
 
 // @route   POST /api/employee/login
 // @desc    Auth employee & get token
@@ -13,7 +18,9 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const employee = await Employee.findOne({ email });
+    const employee = await Employee.findOne({ email: email.trim().toLowerCase() })
+      .populate('companyId', 'companyName companyCode logoUrl')
+      .populate('supervisorId', 'name supervisorId email phoneNumber');
 
     if (employee && (await employee.matchPassword(password))) {
       res.json({
@@ -22,6 +29,10 @@ router.post('/login', async (req, res) => {
         email: employee.email,
         name: employee.name,
         role: employee.role,
+        companyName: employee.companyId?.companyName || 'The Infinity Roles',
+        companyCode: employee.companyCode || employee.companyId?.companyCode || '',
+        skillLevel: employee.skillLevel || employee.skillType,
+        wageParticulars: employee.wageParticulars,
         token: generateToken(employee._id),
       });
     } else {
@@ -33,11 +44,15 @@ router.post('/login', async (req, res) => {
 });
 
 // @route   GET /api/employee/me
-// @desc    Get logged in employee profile
+// @desc    Get logged in employee profile, company info, and wage breakdown
 // @access  Private (Employee)
 router.get('/me', protectEmployee, async (req, res) => {
   try {
-    const employee = await Employee.findById(req.employee._id).select('-password');
+    const employee = await Employee.findById(req.employee._id)
+      .select('-password')
+      .populate('companyId', 'companyName companyCode email phoneNumber address logoUrl')
+      .populate('supervisorId', 'name supervisorId email phoneNumber');
+
     if (employee) {
       res.json(employee);
     } else {
@@ -48,57 +63,41 @@ router.get('/me', protectEmployee, async (req, res) => {
   }
 });
 
+// ==========================================
+// OTP PASSWORD RESET
+// ==========================================
+
 // @route   POST /api/employee/forgotpassword
-// @desc    Forgot Password
+// @desc    Send 6-digit OTP
 // @access  Public
 router.post('/forgotpassword', async (req, res) => {
   try {
-    const employee = await Employee.findOne({ email: req.body.email });
+    const employee = await Employee.findOne({ email: req.body.email?.trim().toLowerCase() });
 
     if (!employee) {
-      return res.status(404).json({ message: 'There is no user with that email' });
+      return res.status(404).json({ message: 'There is no worker with that email' });
     }
 
-    // Get reset token
-    const resetToken = employee.getResetPasswordToken();
+    const otp = employee.getResetOtp();
+    employee.getResetPasswordToken();
     await employee.save({ validateBeforeSave: false });
-
-    // Create reset url
-    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:5173'}/employee/reset-password/${resetToken}`;
-
-    const message = `You requested a password reset. Please go to: ${resetUrl}`;
-
-    const htmlTemplate = `
-      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb; border-radius: 10px;">
-        <div style="text-align: center; margin-bottom: 20px;">
-          <h1 style="color: #4f46e5; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 1px;">The Infinity <span style="color: #06b6d4;">Roles</span></h1>
-        </div>
-        <div style="background-color: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); border: 1px solid #f3f4f6;">
-          <h2 style="color: #1f2937; margin-top: 0; text-align: center;">Reset Your Password</h2>
-          <p style="color: #4b5563; line-height: 1.6;">Hello,</p>
-          <p style="color: #4b5563; line-height: 1.6;">We received a request to reset the password for your The Infinity Roles Employee account. Click the button below to set a new password:</p>
-          <div style="text-align: center; margin: 35px 0;">
-            <a href="${resetUrl}" style="background-color: #4f46e5; color: white; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; display: inline-block; box-shadow: 0 4px 6px rgba(79, 70, 229, 0.2);">Reset Password</a>
-          </div>
-          <p style="color: #4b5563; line-height: 1.6; font-size: 14px;">If you didn't request a password reset, you can safely ignore this email. Your password will remain unchanged.</p>
-          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 25px 0;" />
-          <p style="color: #9ca3af; font-size: 12px; text-align: center; margin: 0;">The Infinity Roles &copy; 2026. All rights reserved.</p>
-        </div>
-      </div>
-    `;
 
     try {
       await sendEmail({
         email: employee.email,
-        subject: 'Reset Your The Infinity Roles Password',
-        message,
-        html: htmlTemplate,
+        subject: 'Your Password Reset OTP - Employee Portal',
+        html: getOtpEmailTemplate({
+          recipientName: employee.name,
+          otp,
+          role: 'Employee',
+          expiresMinutes: 10,
+        }),
       });
-      res.status(200).json({ message: 'Email sent' });
+
+      res.status(200).json({ message: '6-digit OTP sent to your registered email' });
     } catch (err) {
-      console.error(err);
-      employee.resetPasswordToken = undefined;
-      employee.resetPasswordExpire = undefined;
+      employee.resetOtp = undefined;
+      employee.resetOtpExpire = undefined;
       await employee.save({ validateBeforeSave: false });
       res.status(500).json({ message: 'Email could not be sent' });
     }
@@ -107,16 +106,71 @@ router.post('/forgotpassword', async (req, res) => {
   }
 });
 
-// @route   PUT /api/employee/resetpassword/:resettoken
-// @desc    Reset Password
+// @route   POST /api/employee/verify-otp
+// @desc    Verify 6-digit OTP
 // @access  Public
+router.post('/verify-otp', async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+    if (!email || !otp) {
+      return res.status(400).json({ message: 'Email and OTP are required' });
+    }
+
+    const hashedOtp = crypto.createHash('sha256').update(otp.trim()).digest('hex');
+    const employee = await Employee.findOne({
+      email: email.trim().toLowerCase(),
+      resetOtp: hashedOtp,
+      resetOtpExpire: { $gt: Date.now() },
+    });
+
+    if (!employee) {
+      return res.status(400).json({ message: 'Invalid or expired OTP code' });
+    }
+
+    res.json({ message: 'OTP verified successfully' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+});
+
+// @route   POST /api/employee/resetpassword-otp
+// @desc    Reset password using 6-digit OTP
+// @access  Public
+router.post('/resetpassword-otp', async (req, res) => {
+  try {
+    const { email, otp, password } = req.body;
+    if (!email || !otp || !password) {
+      return res.status(400).json({ message: 'Email, OTP, and new password are required' });
+    }
+
+    const hashedOtp = crypto.createHash('sha256').update(otp.trim()).digest('hex');
+    const employee = await Employee.findOne({
+      email: email.trim().toLowerCase(),
+      resetOtp: hashedOtp,
+      resetOtpExpire: { $gt: Date.now() },
+    });
+
+    if (!employee) {
+      return res.status(400).json({ message: 'Invalid or expired OTP code' });
+    }
+
+    employee.password = password;
+    employee.resetOtp = undefined;
+    employee.resetOtpExpire = undefined;
+    employee.resetPasswordToken = undefined;
+    employee.resetPasswordExpire = undefined;
+    await employee.save();
+
+    res.json({ message: 'Password reset successfully. Please login with your new password.' });
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error', error: error.message });
+  }
+});
+
+// Backward-compatible token reset
 router.put('/resetpassword/:resettoken', async (req, res) => {
   try {
-    const resetPasswordToken = crypto
-      .createHash('sha256')
-      .update(req.params.resettoken)
-      .digest('hex');
-
+    const resetPasswordToken = crypto.createHash('sha256').update(req.params.resettoken).digest('hex');
     const employee = await Employee.findOne({
       resetPasswordToken,
       resetPasswordExpire: { $gt: Date.now() },

@@ -18,6 +18,8 @@ const adminSchema = new mongoose.Schema({
   },
   resetPasswordToken: String,
   resetPasswordExpire: Date,
+  resetOtp: String,
+  resetOtpExpire: Date,
 }, { timestamps: true });
 
 // Hash password before saving
@@ -49,6 +51,14 @@ adminSchema.methods.getResetPasswordToken = function () {
   this.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
 
   return resetToken;
+};
+
+// Generate 6-digit OTP
+adminSchema.methods.getResetOtp = function () {
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+  this.resetOtp = crypto.createHash('sha256').update(otp).digest('hex');
+  this.resetOtpExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+  return otp;
 };
 
 const Admin = mongoose.model('Admin', adminSchema);

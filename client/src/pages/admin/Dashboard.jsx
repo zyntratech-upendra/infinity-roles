@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
+  Building2,
   Users, 
   Briefcase, 
   UserCheck, 
@@ -20,6 +21,7 @@ import { motion } from 'framer-motion';
 
 const Dashboard = () => {
   const [stats, setStats] = useState({
+    companies: 0,
     supervisors: 0,
     consultants: 0,
     employees: 0,
@@ -51,6 +53,16 @@ const Dashboard = () => {
 
   const statCards = [
     {
+      title: 'Registered Companies',
+      value: stats.companies,
+      change: 'Corporate Entities',
+      icon: <Building2 className="w-6 h-6 text-indigo-600" />,
+      gradient: 'from-indigo-500/10 via-purple-500/10 to-indigo-500/5',
+      border: 'border-indigo-200/60',
+      badge: 'Clients',
+      link: '/admin/companies'
+    },
+    {
       title: 'Active Supervisors',
       value: stats.supervisors,
       change: 'Roster Leaders',
@@ -71,24 +83,14 @@ const Dashboard = () => {
       link: '/admin/consultants'
     },
     {
-      title: 'Staff Employees',
+      title: 'Governed Workforce',
       value: stats.employees,
-      change: 'Live Punch-In Stack',
+      change: 'Skill-Tier Roster',
       icon: <UserCheck className="w-6 h-6 text-cyan-600" />,
       gradient: 'from-cyan-500/10 via-teal-500/10 to-cyan-500/5',
       border: 'border-cyan-200/60',
-      badge: 'Workforce',
-      link: '/admin/supervisors'
-    },
-    {
-      title: 'Total Governed Users',
-      value: stats.totalUsers,
-      change: '99.9% Role Accuracy',
-      icon: <ShieldCheck className="w-6 h-6 text-emerald-600" />,
-      gradient: 'from-emerald-500/10 via-teal-500/10 to-emerald-500/5',
-      border: 'border-emerald-200/60',
-      badge: '100% Synced',
-      link: '/admin/supervisors'
+      badge: 'Staff',
+      link: '/admin/companies'
     }
   ];
 

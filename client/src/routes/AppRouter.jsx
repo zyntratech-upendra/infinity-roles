@@ -13,6 +13,7 @@ import Profile from '../pages/admin/Profile';
 import Settings from '../pages/admin/Settings';
 import SupervisorManagement from '../pages/admin/SupervisorManagement';
 import ConsultantManagement from '../pages/admin/ConsultantManagement';
+import CompanyManagement from '../pages/admin/CompanyManagement';
 import UserManagement from '../pages/admin/UserManagement';
 import EmployeeManagement from '../pages/supervisor/EmployeeManagement';
 
@@ -31,6 +32,14 @@ import ConsultantDashboard from '../pages/consultant/ConsultantDashboard';
 import EmployeeLayout from '../layouts/EmployeeLayout';
 import EmployeeLogin from '../pages/employee/EmployeeLogin';
 import EmployeeDashboard from '../pages/employee/EmployeeDashboard';
+
+// Company Routes
+import CompanyLayout from '../layouts/CompanyLayout';
+import CompanyLogin from '../pages/company/CompanyLogin';
+import CompanyDashboard from '../pages/company/CompanyDashboard';
+import CompanyWorkforce from '../pages/company/CompanyWorkforce';
+import CompanySupervisors from '../pages/company/CompanySupervisors';
+import CompanyWageParticulars from '../pages/company/CompanyWageParticulars';
 
 // Auth Routes (Generic)
 import ForgotPassword from '../pages/auth/ForgotPassword';
@@ -64,15 +73,21 @@ const AppRouter = () => {
           <Route path="/employee/login" element={<EmployeeLogin />} />
           <Route path="/employee/forgot-password" element={<ForgotPassword role="employee" />} />
           <Route path="/employee/reset-password/:token" element={<ResetPassword role="employee" />} />
+
+          {/* Company Login & Recovery */}
+          <Route path="/company/login" element={<CompanyLogin />} />
+          <Route path="/company/forgot-password" element={<ForgotPassword role="company" />} />
+          <Route path="/company/reset-password/:token" element={<ResetPassword role="company" />} />
         </Route>        
-        {/* Admin Login - Standalone */}
+        {/* Admin Login & Recovery */}
         <Route path="/admin/login" element={<AdminLogin />} />
+        <Route path="/admin/forgot-password" element={<ForgotPassword role="admin" />} />
+        <Route path="/admin/reset-password/:token" element={<ResetPassword role="admin" />} />
 
         {/* Consultant Login & Recovery */}
         <Route path="/consultant/login" element={<ConsultantLogin />} />
         <Route path="/consultant/forgot-password" element={<ForgotPassword role="consultant" />} />
         <Route path="/consultant/reset-password/:token" element={<ResetPassword role="consultant" />} />
-
         
         {/* Admin Routes */}
         <Route path="/admin" element={<AdminLayout />}>
@@ -80,8 +95,8 @@ const AppRouter = () => {
           <Route path="profile" element={<Profile />} />
           <Route path="supervisors" element={<SupervisorManagement />} />
           <Route path="consultants" element={<ConsultantManagement />} />
+          <Route path="companies" element={<CompanyManagement />} />
           <Route path="users" element={<UserManagement />} />
-          <Route path="companies" element={<Dashboard />} />
           <Route path="settings" element={<Settings />} />
         </Route>
 
@@ -100,6 +115,14 @@ const AppRouter = () => {
         {/* Employee Routes */}
         <Route path="/employee" element={<EmployeeLayout />}>
           <Route path="dashboard" element={<EmployeeDashboard />} />
+        </Route>
+
+        {/* Company Routes */}
+        <Route path="/company" element={<CompanyLayout />}>
+          <Route path="dashboard" element={<CompanyDashboard />} />
+          <Route path="workforce" element={<CompanyWorkforce />} />
+          <Route path="supervisors" element={<CompanySupervisors />} />
+          <Route path="wages" element={<CompanyWageParticulars />} />
         </Route>
       </Routes>
     </Router>

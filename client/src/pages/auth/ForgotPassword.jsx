@@ -1,137 +1,421 @@
-import React, { useState } from 'react';
-import { Mail, ArrowLeft, Loader2 } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import React, { useState, useRef, useEffect } from 'react';
+import { Mail, ArrowLeft, Loader2, KeyRound, CheckCircle2, ShieldCheck, Eye, EyeOff, Lock, AlertCircle, RefreshCw } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Link, useNavigate } from 'react-router-dom';
 import InfinityLogo from '../../components/InfinityLogo';
 
-const ForgotPassword = ({ role }) => {
+const ForgotPassword = ({ role = 'supervisor' }) => {
+  const navigate = useNavigate();
+  // Flow steps: 1 = Email, 2 = 6-digit OTP, 3 = New Password, 4 = Success
+  const [currentStep, setCurrentStep] = useState(1);
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState(null);
   const [error, setError] = useState(null);
+  const [successMsg, setSuccessMsg] = useState(null);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // 6-digit OTP inputs
+  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const inputRefs = useRef([]);
+
+  // Password fields
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+
+  // Resend Countdown Timer (starts at 60s when OTP is sent)
+  const [resendTimer, setResendTimer] = useState(60);
+  const [canResend, setCanResend] = useState(false);
+
+  useEffect(() => {
+    let interval = null;
+    if (currentStep === 2 && resendTimer > 0) {
+      interval = setInterval(() => {
+        setResendTimer((prev) => prev - 1);
+      }, 1000);
+    } else if (resendTimer === 0) {
+      setCanResend(true);
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [currentStep, resendTimer]);
+
+  // Step 1: Request 6-digit OTP
+  const handleRequestOtp = async (e) => {
+    if (e) e.preventDefault();
+    if (!email.trim()) {
+      setError('Please enter your registered email address.');
+      return;
+    }
+
     setLoading(true);
     setError(null);
-    setMessage(null);
+    setSuccessMsg(null);
 
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL}/${role}/forgotpassword`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email: email.trim().toLowerCase() }),
       });
       const data = await response.json();
-      
+
       if (response.ok) {
-        setMessage('A password reset link has been sent to your email.');
+        setSuccessMsg(data.message || '6-digit OTP code sent to your email.');
+        setCurrentStep(2);
+        setResendTimer(60);
+        setCanResend(false);
       } else {
-        setError(data.message || 'Failed to send reset link');
+        setError(data.message || 'Unable to send OTP. Please check your email.');
       }
     } catch (err) {
-      setError('An error occurred. Please try again later.');
+      setError('Network error. Please verify your connection.');
     } finally {
       setLoading(false);
     }
   };
 
-  const getRoleTheme = () => {
-    switch(role) {
-      case 'supervisor': return { bg: 'bg-[#0e3d79]/5', color: 'text-[#0e3d79]', ring: 'focus:ring-[#0e3d79]/20', border: 'focus:border-[#0e3d79]', btn: 'bg-gradient-to-r from-[#0e3d79] to-[#1553a1]' };
-      case 'consultant': return { bg: 'bg-teal-500/5', color: 'text-[#0e3d79]', ring: 'focus:ring-[#0e3d79]/20', border: 'focus:border-[#0e3d79]', btn: 'bg-gradient-to-r from-[#0e3d79] to-[#1553a1]' };
-      default: return { bg: 'bg-gray-500/5', color: 'text-gray-900', ring: 'focus:ring-gray-500/20', border: 'focus:border-gray-500', btn: 'bg-gray-800' };
+  // Step 2: Handle OTP input changes
+  const handleOtpChange = (index, value) => {
+    if (/^[0-9]?$/.test(value)) {
+      const newOtp = [...otp];
+      newOtp[index] = value;
+      setOtp(newOtp);
+
+      // Auto-tab to next box
+      if (value && index < 5) {
+        inputRefs.current[index + 1]?.focus();
+      }
     }
   };
 
-  const theme = getRoleTheme();
+  const handleOtpKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (e) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (pasted) {
+      const newOtp = [...otp];
+      for (let i = 0; i < pasted.length; i++) {
+        newOtp[i] = pasted[i];
+      }
+      setOtp(newOtp);
+      inputRefs.current[Math.min(pasted.length, 5)]?.focus();
+    }
+  };
+
+  // Step 2: Verify OTP
+  const handleVerifyOtp = async (e) => {
+    e.preventDefault();
+    const otpCode = otp.join('');
+    if (otpCode.length !== 6) {
+      setError('Please enter the complete 6-digit OTP code.');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/${role}/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim().toLowerCase(), otp: otpCode }),
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        setCurrentStep(3);
+      } else {
+        setError(data.message || 'Invalid or expired OTP code.');
+      }
+    } catch (err) {
+      setError('Network verification error.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Step 3: Reset Password
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    if (!newPassword || newPassword.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const otpCode = otp.join('');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/${role}/resetpassword-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: email.trim().toLowerCase(),
+          otp: otpCode,
+          password: newPassword,
+        }),
+      });
+      const data = await response.json();
+
+      if (response.ok) {
+        setCurrentStep(4);
+        setTimeout(() => {
+          navigate(`/${role}/login`);
+        }, 3000);
+      } else {
+        setError(data.message || 'Failed to update password.');
+      }
+    } catch (err) {
+      setError('Network error while resetting password.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const formattedRole = role.charAt(0).toUpperCase() + role.slice(1);
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 relative overflow-hidden font-sans">
       {/* Background Decor */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0">
-        <div className={`absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full ${theme.bg} blur-3xl`}></div>
-        <div className={`absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full ${theme.bg} blur-3xl`}></div>
-      </div>
+      <div className="absolute top-0 left-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+      <div className="absolute bottom-0 right-0 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl translate-x-1/2 translate-y-1/2 pointer-events-none" />
 
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.4 }}
         className="w-full max-w-md relative z-10"
       >
-        <div className="bg-white/70 backdrop-blur-xl rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.08)] border border-white p-8">
-          <div className="text-center mb-8">
+        <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-xl border border-slate-200/80 p-8">
+          
+          {/* Brand Logo & Header */}
+          <div className="text-center mb-6">
             <Link to="/" className="inline-block mb-3">
-              <InfinityLogo size="lg" />
+              <InfinityLogo size="md" variant="gradient" />
             </Link>
-            <h1 className={`text-3xl font-extrabold ${theme.color} tracking-tight mb-2`}>Forgot Password?</h1>
-            <p className="text-gray-500 font-medium text-sm">Enter your email and we'll send you a link to reset your {formattedRole} portal password.</p>
+            
+            <div className="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-bold uppercase tracking-wider mb-2">
+              <ShieldCheck className="w-3 h-3" />
+              <span>{formattedRole} Portal Security</span>
+            </div>
+
+            <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+              {currentStep === 1 && 'Reset Password'}
+              {currentStep === 2 && 'Enter 6-Digit OTP'}
+              {currentStep === 3 && 'Create New Password'}
+              {currentStep === 4 && 'Password Reset Complete'}
+            </h1>
+            
+            <p className="text-xs text-slate-500 font-medium mt-1">
+              {currentStep === 1 && `Enter your registered ${formattedRole} email to receive an instant verification code.`}
+              {currentStep === 2 && `We've sent a 6-digit code to ${email}.`}
+              {currentStep === 3 && 'Choose a strong password to secure your account.'}
+              {currentStep === 4 && 'Your credentials have been securely updated.'}
+            </p>
           </div>
 
+          {/* Feedback alerts */}
           {error && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="mb-6 p-4 bg-red-50/80 backdrop-blur-sm border border-red-100 text-red-600 rounded-2xl text-sm font-semibold flex items-center"
+            <motion.div
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-5 p-3.5 bg-rose-50 border border-rose-200 text-rose-700 rounded-2xl text-xs font-bold flex items-center gap-2"
             >
-              <span className="mr-2">⚠️</span>
-              {error}
+              <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <span>{error}</span>
             </motion.div>
           )}
 
-          {message && (
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="mb-6 p-4 bg-green-50/80 backdrop-blur-sm border border-green-100 text-green-700 rounded-2xl text-sm font-semibold flex items-center"
+          {successMsg && (
+            <motion.div
+              initial={{ opacity: 0, y: -5 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-5 p-3.5 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-2xl text-xs font-bold flex items-center gap-2"
             >
-              <span className="mr-2">✅</span>
-              {message}
+              <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+              <span>{successMsg}</span>
             </motion.div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Email Address</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
+          {/* STEP 1: ENTER EMAIL */}
+          {currentStep === 1 && (
+            <form onSubmit={handleRequestOtp} className="space-y-5">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1.5">Registered Email Address</label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="name@company.com"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all"
+                  />
                 </div>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={`block w-full pl-11 pr-4 py-3 bg-white/50 border border-gray-200/60 rounded-xl text-sm font-medium focus:ring-2 ${theme.ring} ${theme.border} transition-all outline-none`}
-                  placeholder="your@email.com"
-                />
               </div>
-            </div>
 
-            <button
-              type="submit"
-              disabled={loading || message !== null}
-              className={`w-full flex justify-center items-center py-3.5 px-4 border border-transparent rounded-xl shadow-lg shadow-[#0e3d79]/20 text-sm font-bold text-white ${theme.btn} hover:opacity-90 focus:outline-none transition-all hover:shadow-xl active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed`}
-            >
-              {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                'Send Reset Link'
-              )}
-            </button>
-            
-            <div className="text-center mt-4">
-              <Link to={`/${role}/login`} className={`text-sm font-bold ${theme.color} hover:opacity-80 transition-opacity flex items-center justify-center`}>
-                <ArrowLeft className="w-4 h-4 mr-1" />
-                Back to Login
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-bold text-xs rounded-xl shadow-md shadow-indigo-600/20 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+              >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Send 6-Digit Verification OTP'}
+              </button>
+
+              <div className="text-center pt-2">
+                <Link
+                  to={`/${role}/login`}
+                  className="text-xs font-bold text-slate-500 hover:text-indigo-600 transition-colors inline-flex items-center gap-1"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Return to Login</span>
+                </Link>
+              </div>
+            </form>
+          )}
+
+          {/* STEP 2: ENTER 6-DIGIT OTP */}
+          {currentStep === 2 && (
+            <form onSubmit={handleVerifyOtp} className="space-y-6">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 text-center mb-3">
+                  Verification Code (OTP)
+                </label>
+                
+                {/* 6 input boxes */}
+                <div className="flex justify-center gap-2 sm:gap-2.5" onPaste={handleOtpPaste}>
+                  {otp.map((digit, idx) => (
+                    <input
+                      key={idx}
+                      ref={(el) => (inputRefs.current[idx] = el)}
+                      type="text"
+                      maxLength={1}
+                      value={digit}
+                      onChange={(e) => handleOtpChange(idx, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(idx, e.key)}
+                      className="w-11 h-12 text-center text-lg font-black font-mono bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:border-indigo-600 focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-slate-900"
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between text-xs text-slate-500 px-1">
+                <span>
+                  {canResend ? (
+                    <button
+                      type="button"
+                      onClick={() => handleRequestOtp()}
+                      className="text-indigo-600 hover:underline font-bold flex items-center gap-1 cursor-pointer"
+                    >
+                      <RefreshCw className="w-3 h-3" /> Resend Code
+                    </button>
+                  ) : (
+                    <span>Resend in <strong className="text-slate-800">{resendTimer}s</strong></span>
+                  )}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setCurrentStep(1)}
+                  className="text-slate-400 hover:text-slate-600 text-xs"
+                >
+                  Change Email
+                </button>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || otp.join('').length !== 6}
+                className="w-full py-3 px-4 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-bold text-xs rounded-xl shadow-md shadow-indigo-600/20 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-40 cursor-pointer"
+              >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Verify Code & Proceed'}
+              </button>
+            </form>
+          )}
+
+          {/* STEP 3: SET NEW PASSWORD */}
+          {currentStep === 3 && (
+            <form onSubmit={handleResetPassword} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">New Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="Min 6 characters"
+                    className="w-full pl-10 pr-10 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:bg-white focus:border-indigo-500 outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                  >
+                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-slate-700 mb-1">Confirm New Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    required
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="Re-enter password"
+                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:bg-white focus:border-indigo-500 outline-none"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 px-4 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-600/20 active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+              >
+                {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Set New Password & Complete'}
+              </button>
+            </form>
+          )}
+
+          {/* STEP 4: SUCCESS */}
+          {currentStep === 4 && (
+            <div className="text-center py-6 space-y-4">
+              <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner">
+                <CheckCircle2 className="w-8 h-8" />
+              </div>
+              <h3 className="text-lg font-black text-slate-900">Password Changed Successfully!</h3>
+              <p className="text-xs text-slate-500">
+                You can now log in using your updated password. Redirecting to login portal in 3 seconds...
+              </p>
+              <Link
+                to={`/${role}/login`}
+                className="inline-block px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-sm transition-all"
+              >
+                Go to Login Now
               </Link>
             </div>
-          </form>
+          )}
+
         </div>
+
         <div className="text-center mt-6">
-           <p className="text-xs text-slate-500 font-medium">The Infinity Roles © 2026. All rights reserved.</p>
+          <p className="text-[11px] text-slate-400 font-medium">The Infinity Roles • Enterprise Security &copy; 2026</p>
         </div>
       </motion.div>
     </div>

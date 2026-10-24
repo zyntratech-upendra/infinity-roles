@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Menu, X, ChevronDown, ShieldCheck, User, Users, Briefcase, Sparkles, ArrowRight } from 'lucide-react';
+import { Menu, X, ChevronDown, ShieldCheck, User, Users, Briefcase, Building2, Sparkles, ArrowRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import InfinityLogo from './InfinityLogo';
 
@@ -38,6 +38,13 @@ const Navbar = () => {
       path: '/supervisor/login',
       icon: <Users className="w-4 h-4 text-indigo-500" />,
       badge: 'Manage'
+    },
+    {
+      title: 'Company Portal',
+      desc: 'Workforce roster & wage particulars',
+      path: '/company/login',
+      icon: <Building2 className="w-4 h-4 text-sky-500" />,
+      badge: 'Client'
     },
     {
       title: 'Consultant Portal',

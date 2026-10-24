@@ -218,137 +218,145 @@ const SupervisorManagement = () => {
         )}
       </div>
 
-      {/* Create / Edit Slide-over Panel with Glassmorphism */}
+      {/* Create / Edit Slide-over Panel with Liquid Glassmorphism */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex justify-end">
+          <div className="fixed inset-0 z-50 overflow-hidden">
+            {/* Liquid Glass Backdrop Blur */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 bg-slate-950/40 backdrop-blur-md"
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 bg-slate-950/40 backdrop-blur-md"
               onClick={() => setIsModalOpen(false)}
             />
-            <motion.div
-              initial={{ x: '100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '100%' }}
-              transition={{ type: 'spring', damping: 28, stiffness: 240 }}
-              className="bg-white/85 backdrop-blur-3xl border-l border-white/70 shadow-[0_20px_50px_rgba(79,70,229,0.15)] w-full max-w-lg h-full relative z-10 overflow-y-auto flex flex-col"
-            >
-              {/* Top Decorative Ambient Glow in Card */}
-              <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-indigo-500/15 via-purple-500/15 to-transparent rounded-full blur-3xl pointer-events-none -z-10" />
 
-              <div className="p-6 border-b border-slate-200/60 flex justify-between items-start bg-gradient-to-r from-white/90 via-indigo-50/30 to-purple-50/20 backdrop-blur-md">
-                <div>
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-extrabold uppercase tracking-wider border border-indigo-100 mb-2">
-                    <span>Supervisor Provisioning</span>
+            {/* Slide-over Right Drawer Container */}
+            <div className="fixed inset-y-0 right-0 max-w-full flex pl-4 sm:pl-10 pointer-events-none z-10">
+              <motion.div
+                initial={{ x: '100%', opacity: 0.7 }}
+                animate={{ x: 0, opacity: 1 }}
+                exit={{ x: '100%', opacity: 0 }}
+                transition={{ type: 'spring', damping: 28, stiffness: 260 }}
+                className="w-screen max-w-md sm:max-w-lg pointer-events-auto h-full flex flex-col relative overflow-hidden liquid-glass-drawer text-slate-800"
+              >
+                {/* Liquid Aurora Background Lights */}
+                <div className="absolute -top-24 -right-24 w-80 h-80 rounded-full bg-gradient-to-br from-indigo-500/20 via-purple-500/15 to-pink-500/15 blur-3xl pointer-events-none animate-liquid-float" />
+                <div className="absolute top-1/2 -left-28 w-72 h-72 rounded-full bg-gradient-to-tr from-cyan-400/20 via-blue-500/15 to-indigo-400/15 blur-3xl pointer-events-none animate-liquid-float-reverse" />
+
+                {/* Top Header */}
+                <div className="relative z-20 px-6 py-5 bg-white/60 backdrop-blur-xl border-b border-white/70 flex items-center justify-between shadow-xs">
+                  <div>
+                    <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-extrabold uppercase tracking-wider border border-indigo-200/60 shadow-2xs mb-1.5">
+                      <span>Supervisor Provisioning</span>
+                    </div>
+                    <h2 className="text-xl font-extrabold text-slate-900 font-display">
+                      {editingId ? 'Edit Supervisor' : 'Add New Supervisor'}
+                    </h2>
+                    <p className="text-xs text-slate-500 mt-0.5 font-medium">
+                      {editingId ? 'Update supervisor credentials and contact details.' : 'They will receive an automated email with system login credentials.'}
+                    </p>
                   </div>
-                  <h2 className="text-xl font-extrabold text-slate-900 font-display">
-                    {editingId ? 'Edit Supervisor' : 'Add New Supervisor'}
-                  </h2>
-                  <p className="text-xs text-slate-500 mt-1 font-medium">
-                    {editingId ? 'Update supervisor credentials and contact details.' : 'They will receive an automated email with system login credentials.'}
-                  </p>
-                </div>
-                <button 
-                  onClick={() => setIsModalOpen(false)}
-                  className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-200/50 rounded-full transition-colors"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              <form onSubmit={handleSubmit} className="p-6 flex-1 flex flex-col justify-between">
-                <div>
-                  {error && (
-                    <div className="mb-5 p-3.5 bg-rose-50/80 border border-rose-200 text-rose-700 rounded-2xl text-xs font-bold backdrop-blur-sm">
-                      {error}
-                    </div>
-                  )}
-
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                        Full Name
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-xl focus:bg-white focus:ring-4 focus:ring-indigo-500/15 focus:border-indigo-500 outline-none transition-all text-sm font-medium shadow-sm placeholder:text-slate-400"
-                        placeholder="John Doe"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                        Email Address
-                      </label>
-                      <input
-                        type="email"
-                        required
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-xl focus:bg-white focus:ring-4 focus:ring-indigo-500/15 focus:border-indigo-500 outline-none transition-all text-sm font-medium shadow-sm placeholder:text-slate-400"
-                        placeholder="supervisor@domain.com"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                        Phone Number
-                      </label>
-                      <input
-                        type="tel"
-                        value={formData.phoneNumber}
-                        onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-xl focus:bg-white focus:ring-4 focus:ring-indigo-500/15 focus:border-indigo-500 outline-none transition-all text-sm font-medium shadow-sm placeholder:text-slate-400"
-                        placeholder="+1 (555) 000-0000"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                        Office or Work Location Address
-                      </label>
-                      <textarea
-                        rows={3}
-                        value={formData.address}
-                        onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                        className="w-full px-4 py-2.5 bg-white/70 backdrop-blur-md border border-slate-200/80 rounded-xl focus:bg-white focus:ring-4 focus:ring-indigo-500/15 focus:border-indigo-500 outline-none transition-all text-sm font-medium resize-none shadow-sm placeholder:text-slate-400"
-                        placeholder="Enter location or facility address..."
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="mt-8 pt-6 border-t border-slate-200/60 flex items-center justify-end space-x-3">
-                  <button
-                    type="button"
+                  <button 
                     onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2.5 rounded-xl border border-slate-200/80 text-slate-600 hover:bg-slate-100 font-bold text-xs transition-colors shadow-sm bg-white/80"
+                    className="p-2 text-slate-400 hover:text-slate-700 hover:bg-white/80 rounded-full transition-colors cursor-pointer"
                   >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={creating}
-                    className="flex items-center justify-center bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 hover:from-indigo-700 hover:to-purple-800 text-white px-6 py-2.5 rounded-xl font-bold text-xs shadow-lg shadow-indigo-500/25 transition-all hover:shadow-xl disabled:opacity-70 disabled:cursor-not-allowed"
-                  >
-                    {creating ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Saving...
-                      </>
-                    ) : (
-                      editingId ? 'Update Supervisor' : 'Create Supervisor'
-                    )}
+                    <X size={18} />
                   </button>
                 </div>
-              </form>
-            </motion.div>
+
+                <form onSubmit={handleSubmit} className="p-6 flex-1 flex flex-col justify-between overflow-y-auto relative z-10">
+                  <div>
+                    {error && (
+                      <div className="mb-5 p-3.5 bg-rose-50/90 border border-rose-200 text-rose-700 rounded-2xl text-xs font-bold backdrop-blur-sm shadow-xs">
+                        {error}
+                      </div>
+                    )}
+
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                          Full Name
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={formData.name}
+                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                          className="w-full px-3.5 py-2.5 liquid-glass-input rounded-xl text-xs font-medium text-slate-900 outline-none"
+                          placeholder="John Doe"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                          Email Address
+                        </label>
+                        <input
+                          type="email"
+                          required
+                          value={formData.email}
+                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          className="w-full px-3.5 py-2.5 liquid-glass-input rounded-xl text-xs font-medium text-slate-900 outline-none"
+                          placeholder="supervisor@domain.com"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                          Phone Number
+                        </label>
+                        <input
+                          type="tel"
+                          value={formData.phoneNumber}
+                          onChange={(e) => setFormData({ ...formData, phoneNumber: e.target.value })}
+                          className="w-full px-3.5 py-2.5 liquid-glass-input rounded-xl text-xs font-medium text-slate-900 outline-none"
+                          placeholder="+1 (555) 000-0000"
+                        />
+                      </div>
+
+                      <div>
+                        <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                          Office or Work Location Address
+                        </label>
+                        <textarea
+                          rows={3}
+                          value={formData.address}
+                          onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                          className="w-full px-3.5 py-2.5 liquid-glass-input rounded-xl text-xs font-medium text-slate-900 outline-none resize-none"
+                          placeholder="Enter location or facility address..."
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-8 pt-5 border-t border-white/70 flex items-center justify-end space-x-3">
+                    <button
+                      type="button"
+                      onClick={() => setIsModalOpen(false)}
+                      className="px-4 py-2.5 rounded-xl border border-white/80 bg-white/60 hover:bg-white text-slate-600 hover:text-slate-900 font-bold text-xs shadow-2xs transition-all cursor-pointer"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={creating}
+                      className="flex items-center justify-center bg-gradient-to-r from-indigo-600 via-indigo-700 to-purple-700 hover:from-indigo-700 hover:to-purple-800 text-white px-6 py-2.5 rounded-xl font-bold text-xs shadow-md shadow-indigo-600/25 active:scale-95 transition-all disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      {creating ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        editingId ? 'Update Supervisor' : 'Create Supervisor'
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </motion.div>
+            </div>
           </div>
         )}
       </AnimatePresence>

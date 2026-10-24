@@ -23,6 +23,7 @@ import {
   MapPin,
   Camera,
   Check,
+  Building2,
   ChevronRight,
   Shield,
   FileSpreadsheet,
@@ -95,6 +96,19 @@ const Home = () => {
         'Milestone deliverables & time inspections',
         'Compliance audits with external access rules',
         'Advisory collaboration reports'
+      ]
+    },
+    {
+      name: 'Company',
+      roleTag: 'Workforce & Wage Transparency',
+      loginUrl: '/company/login',
+      badgeColor: 'bg-amber-50 text-amber-700 border-amber-200',
+      icon: <Building2 className="w-6 h-6 text-amber-600" />,
+      features: [
+        'Live workforce roster under company code',
+        'Direct assigned supervisor contact registry',
+        'Transparent skill-wise statutory wage scale',
+        'Automated monthly estimated wage bill'
       ]
     }
   ];
@@ -295,7 +309,7 @@ const Home = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5">
             {roles.map((role, idx) => (
               <motion.div
                 key={role.name}

@@ -2,15 +2,18 @@ const multer = require('multer');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinary = require('../utils/cloudinary');
 
-const storage = new CloudinaryStorage({
+const createStorage = (folder = 'staffhub') => new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
-    folder: 'employees',
-    allowedFormats: ['jpg', 'png', 'jpeg', 'pdf'],
+    folder,
+    allowedFormats: ['jpg', 'png', 'jpeg', 'pdf', 'webp'],
     resource_type: 'auto',
   },
 });
 
-const upload = multer({ storage: storage });
+const upload = multer({ storage: createStorage('employees') });
+const companyUpload = multer({ storage: createStorage('companies') });
 
 module.exports = upload;
+module.exports.upload = upload;
+module.exports.companyUpload = companyUpload;
